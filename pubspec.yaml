@@ -1,0 +1,56 @@
+name: masamune_firebase
+description: >-
+  Module for supporting the Firebase/Firestore function of Masamune framework.
+  It is also available on the web.
+version: 0.2.5
+homepage: https://mathru.net
+repository: https://github.com/mathrunet/flutter_masamune_firebase
+
+
+environment:
+  sdk: ">=2.6.0 <3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  # Web
+  http: ^0.12.1
+  # Device
+  package_info: ^0.4.0+13
+  # Firebase
+  firebase_core: ^0.4.4+3
+  firebase_auth: ^0.16.0
+  cloud_firestore: ^0.13.4+2
+  firebase_storage: ^3.1.3
+  firebase_messaging: ^6.0.13
+  firebase_dynamic_links: ^0.5.0+11
+  firebase_remote_config: ^0.3.0+3
+  # Auth
+  apple_sign_in: ^0.1.0
+  flutter_twitter: ^1.1.3
+  google_sign_in: ^4.2.0
+  flutter_facebook_login: ^3.0.0
+  # Masamune
+  masamune_core: ^0.2.1
+  masamune_localize: ^0.2.0
+  masamune_flutter: ^0.2.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  # Masamune
+  masamune_test: ^0.1.0
+  
+dependency_overrides:
+  masamune_core:
+    path: ../masamune_core/
+  masamune_localize:
+    path: ../masamune_localize/
+  masamune_flutter:
+    path: ../masamune_flutter/
+
+# For information on the generic Dart part of this file, see the
+# following page: https://dart.dev/tools/pub/pubspec
+
+# The following section is specific to Flutter.
+flutter:
