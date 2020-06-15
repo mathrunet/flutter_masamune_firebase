@@ -124,7 +124,7 @@ class UIAuthDialog {
             if (!Config.isIOS) continue;
             options.add(SimpleDialogOption(
                 onPressed: () async {
-                  UILoginForm.show(
+                  UILoginFormDialog.show(
                     context,
                     defaultSubmitAction: (email, password) async {
                       FirestoreAuth auth =

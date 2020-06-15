@@ -53,6 +53,7 @@ part 'storage/firestorestorage.dart';
 
 part 'dynamiclink/firestoredynamiclinkuri.dart';
 
+part 'widget/uiloginformdialog.dart';
 part 'widget/uiloginform.dart';
 part 'widget/uiauth.dart';
 part 'widget/uiauthdialog.dart';

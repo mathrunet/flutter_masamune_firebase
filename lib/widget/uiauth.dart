@@ -178,7 +178,7 @@ class UIAuth extends StatelessWidget {
           case ("emailandpassword"):
             options.add(ListTile(
                 onTap: () async {
-                  UILoginForm.show(
+                  UILoginFormDialog.show(
                     context,
                     defaultSubmitAction: (email, password) async {
                       FirestoreAuth auth =

@@ -1,3 +1,7 @@
+## [0.2.6] - Update README (2020.06.14)
+
+* Added UILoginForm.
+
 ## [0.2.5] - Update README (2020.06.09)
 
 * Formatting.

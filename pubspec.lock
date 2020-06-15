@@ -267,14 +267,14 @@ packages:
       path: "../masamune_core"
       relative: true
     source: path
-    version: "0.2.8"
+    version: "0.2.9+1"
   masamune_flutter:
     dependency: "direct main"
     description:
       path: "../masamune_flutter"
       relative: true
     source: path
-    version: "0.2.4"
+    version: "0.2.5"
   masamune_localize:
     dependency: "direct main"
     description:
