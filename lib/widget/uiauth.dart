@@ -209,9 +209,9 @@ class UIAuth extends StatelessWidget {
                     if (actionOnError != null) actionOnError();
                   } else {
                     UIDialog.show(context,
-                        defaultTitle: dialogTitleWhenAnonymousSignIn,
-                        defaultText: dialogTextWhenAnonymousSignIn,
-                        defaultSubmitAction: () {
+                        title: dialogTitleWhenAnonymousSignIn,
+                        text: dialogTextWhenAnonymousSignIn,
+                        submitAction: () {
                       if (actionAfterSignIn != null) actionAfterSignIn();
                     });
                   }

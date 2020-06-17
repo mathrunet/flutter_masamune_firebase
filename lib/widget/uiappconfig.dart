@@ -22,12 +22,12 @@ class UIAppConfig {
     return AppConfigDocument.listen().listen((value) async {
       if (value.getBool(maintenanceKey, false)) {
         UIDialog.show(overlay.context,
-            defaultTitle: "Under maintenance".localize(),
-            defaultText: "The app is currently under maintenance. "
+            title: "Under maintenance".localize(),
+            text: "The app is currently under maintenance. "
                     "Detailed information on maintenance will be announced on the official website."
                 .localize(),
-            defaultSubmitText: "Open".localize(),
-            defaultSubmitAction: () async {
+            submitText: "Open".localize(),
+            submitAction: () async {
           openURL(officialURL);
           await SystemNavigator.pop();
         }, popOnPress: false, disableBackKey: true, willShowRepetition: true);
@@ -39,12 +39,12 @@ class UIAppConfig {
             value.getString(androidRequiredVersionKey, info.version);
         if (version.compareTo(info.version) <= 0) return value;
         UIDialog.show(overlay.context,
-            defaultTitle: "Please update".localize(),
-            defaultText:
+            title: "Please update".localize(),
+            text:
                 "App update required. Get the latest version from the store."
                     .localize(),
-            defaultSubmitText: "Open".localize(),
-            defaultSubmitAction: () async {
+            submitText: "Open".localize(),
+            submitAction: () async {
           openURL(androidStoreURL);
           await SystemNavigator.pop();
         }, popOnPress: false, disableBackKey: true, willShowRepetition: true);
@@ -53,12 +53,12 @@ class UIAppConfig {
         String version = value.getString(iosRequiredVersionKey, info.version);
         if (version.compareTo(info.version) <= 0) return value;
         UIDialog.show(overlay.context,
-            defaultTitle: "Please update".localize(),
-            defaultText:
+            title: "Please update".localize(),
+            text:
                 "App update required. Get the latest version from the store."
                     .localize(),
-            defaultSubmitText: "Open".localize(),
-            defaultSubmitAction: () async {
+            submitText: "Open".localize(),
+            submitAction: () async {
           openURL(iosStoreURL);
           await SystemNavigator.pop();
         }, popOnPress: false, disableBackKey: true, willShowRepetition: true);
@@ -67,12 +67,12 @@ class UIAppConfig {
     }).then((value) async {
       if (value.getBool(maintenanceKey, false)) {
         return UIDialog.show(context,
-            defaultTitle: "Under maintenance".localize(),
-            defaultText: "The app is currently under maintenance. "
+            title: "Under maintenance".localize(),
+            text: "The app is currently under maintenance. "
                     "Detailed information on maintenance will be announced on the official website."
                 .localize(),
-            defaultSubmitText: "Open".localize(),
-            defaultSubmitAction: () async {
+            submitText: "Open".localize(),
+            submitAction: () async {
           openURL(officialURL);
           await SystemNavigator.pop();
         }, popOnPress: false, disableBackKey: true, willShowRepetition: true);
@@ -83,12 +83,12 @@ class UIAppConfig {
             value.getString(androidRequiredVersionKey, info.version);
         if (version.compareTo(info.version) <= 0) return value;
         return UIDialog.show(context,
-            defaultTitle: "Please update".localize(),
-            defaultText:
+            title: "Please update".localize(),
+            text:
                 "App update required. Get the latest version from the store."
                     .localize(),
-            defaultSubmitText: "Open".localize(),
-            defaultSubmitAction: () async {
+            submitText: "Open".localize(),
+            submitAction: () async {
           openURL(androidStoreURL);
           await SystemNavigator.pop();
         }, popOnPress: false, disableBackKey: true, willShowRepetition: true);
@@ -97,12 +97,12 @@ class UIAppConfig {
         String version = value.getString(iosRequiredVersionKey, info.version);
         if (version.compareTo(info.version) <= 0) return value;
         return UIDialog.show(context,
-            defaultTitle: "Please update".localize(),
-            defaultText:
+            title: "Please update".localize(),
+            text:
                 "App update required. Get the latest version from the store."
                     .localize(),
-            defaultSubmitText: "Open".localize(),
-            defaultSubmitAction: () async {
+            submitText: "Open".localize(),
+            submitAction: () async {
           openURL(iosStoreURL);
           await SystemNavigator.pop();
         }, popOnPress: false, disableBackKey: true, willShowRepetition: true);
