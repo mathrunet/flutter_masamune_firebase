@@ -41,13 +41,13 @@ dev_dependencies:
   # Masamune
   masamune_test: ^0.1.0
   
-dependency_overrides:
-  masamune_core:
-    path: ../masamune_core/
-  masamune_localize:
-    path: ../masamune_localize/
-  masamune_flutter:
-    path: ../masamune_flutter/
+# dependency_overrides:
+#   masamune_core:
+#     path: ../masamune_core/
+#   masamune_localize:
+#     path: ../masamune_localize/
+#   masamune_flutter:
+#     path: ../masamune_flutter/
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

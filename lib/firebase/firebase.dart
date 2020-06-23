@@ -3,7 +3,7 @@ part of masamune.firebase;
 /// Class for managing Firebase applications.
 ///
 /// Please initialize with [Firebase.initialize()] or [Firebase.configure()] when launching the app.
-class Firebase extends Task {
+class Firebase extends TaskUnit {
   /// Get server timestamp.
   static FieldValue get serverTimestamp => FieldValue.serverTimestamp();
 
@@ -146,4 +146,8 @@ class Firebase extends Task {
   /// True if the object is temporary data.
   @override
   bool get isTemporary => false;
+
+  /// Get the protocol of the path.
+  @override
+  String get protocol => "firestore";
 }

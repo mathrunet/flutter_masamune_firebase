@@ -7,7 +7,7 @@ part of masamune.firebase;
 /// ```
 /// await FirestoreStorage.upload( "assets/image.png", file );
 /// ```
-class FirestoreStorage extends Task {
+class FirestoreStorage extends TaskUnit {
   /// Create a Completer that matches the class.
   ///
   /// Do not use from external class.
@@ -174,4 +174,7 @@ class FirestoreStorage extends Task {
       this.error(e.toString());
     }
   }
+  /// Get the protocol of the path.
+  @override
+  String get protocol => "firestore";
 }
