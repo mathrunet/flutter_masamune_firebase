@@ -412,9 +412,9 @@ class FirestoreAuth extends Auth {
       Log.error("This function does not support the Web.");
       return Future.delayed(Duration.zero);
     }
-    assert(!Config.isIOS);
+    assert(Config.isIOS);
     if (!Config.isIOS) {
-      Log.error("This function does not support the Web.");
+      Log.error("This function is only compatible with IOS.");
       return Future.delayed(Duration.zero);
     }
     if (isEmpty(protocol)) protocol = "firestore";
