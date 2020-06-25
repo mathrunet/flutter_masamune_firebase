@@ -174,6 +174,7 @@ class FirestoreStorage extends TaskUnit {
       this.error(e.toString());
     }
   }
+
   /// Get the protocol of the path.
   @override
   String get protocol => "firestore";

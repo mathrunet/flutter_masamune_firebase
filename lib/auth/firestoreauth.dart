@@ -142,6 +142,50 @@ class FirestoreAuth extends Auth {
     return auth.uid;
   }
 
+  /// You can get the Email after authentication is completed.
+  ///
+  /// Null is returned if authentication is not completed.
+  ///
+  /// [protorol]: Protocol specification.
+  static String getEmail({String protocol}) {
+    FirestoreAuth auth = FirestoreAuth(protocol);
+    if (auth == null) return null;
+    return auth._link?.email;
+  }
+
+  /// You can get the PhoneNumber after authentication is completed.
+  ///
+  /// Null is returned if authentication is not completed.
+  ///
+  /// [protorol]: Protocol specification.
+  static String getPhone({String protocol}) {
+    FirestoreAuth auth = FirestoreAuth(protocol);
+    if (auth == null) return null;
+    return auth._link?.phoneNumber;
+  }
+
+  /// You can get the PhotoURL after authentication is completed.
+  ///
+  /// Null is returned if authentication is not completed.
+  ///
+  /// [protorol]: Protocol specification.
+  static String getPhoto({String protocol}) {
+    FirestoreAuth auth = FirestoreAuth(protocol);
+    if (auth == null) return null;
+    return auth._link?.photoUrl;
+  }
+
+  /// You can get the Display Name after authentication is completed.
+  ///
+  /// Null is returned if authentication is not completed.
+  ///
+  /// [protorol]: Protocol specification.
+  static String getName({String protocol}) {
+    FirestoreAuth auth = FirestoreAuth(protocol);
+    if (auth == null) return null;
+    return auth._link?.displayName;
+  }
+
   /// Process sign-in.
   /// Basically, anonymous authentication is performed,
   /// followed by a flow linking a specific authentication method.

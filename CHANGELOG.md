@@ -1,3 +1,7 @@
+## [0.2.7] - Update README (2020.06.25)
+
+* Added FirebaseAuth interface.
+
 ## [0.2.6] - Update README (2020.06.14)
 
 * Added UILoginForm.
