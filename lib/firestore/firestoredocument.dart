@@ -206,7 +206,8 @@ class FirestoreDocument extends TaskDocument<DataField>
   }
 
   static FirestoreDocument _create(String path, [Map<String, dynamic> data]) {
-    path = path?.replaceAll("https", "firestore")?.applyTags();
+    path =
+        Paths.removeQuery(path?.replaceAll("https", "firestore")?.applyTags());
     assert(isNotEmpty(path));
     if (isEmpty(path)) {
       Log.error("Path is invalid.");
