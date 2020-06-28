@@ -37,26 +37,16 @@ class FirestoreAuth extends Auth {
 
   FirebaseAuth __auth;
   FirebaseUser _link;
-  GoogleSignIn get _google {
-    if (this.__google == null) this.__google = GoogleSignIn();
-    return this.__google;
-  }
 
-  GoogleSignIn __google;
-  TwitterLogin get _twitter {
-    if (this.__twitter == null)
-      this.__twitter = TwitterLogin(
-          consumerKey: _twitterAPIKey, consumerSecret: _twitterAPISecret);
-    return this.__twitter;
-  }
-
-  TwitterLogin __twitter;
-  FacebookLogin get _facebook {
-    if (this.__facebook == null) this.__facebook = FacebookLogin();
-    return this.__facebook;
-  }
-
-  FacebookLogin __facebook;
+  /// Callback when authentication is complete.
+  ///
+  /// [onAuthorized]: Callback when authentication is complete.
+  static void onAuthorized(
+          Future onAuthorized(
+              FirestoreAuth auth, FirebaseUser user, String uid)) =>
+      _onAuthorized = onAuthorized;
+  static Future Function(FirestoreAuth auth, FirebaseUser user, String uid)
+      _onAuthorized;
 
   /// Search for an instance of FirestoreAuth from [protocol].
   ///
@@ -114,6 +104,8 @@ class FirestoreAuth extends Auth {
         await user.reload().timeout(timeout);
         this._link = user;
         Log.ast("Logged-in user was found: %s", [this._link.uid]);
+        if (_onAuthorized != null)
+          await _onAuthorized(this, this._link, this.uid);
         this.authorized(this._link.uid);
         return true;
       }
@@ -251,12 +243,7 @@ class FirestoreAuth extends Auth {
         this.error("Firebase auth is not found.");
         return;
       }
-      await Future.wait([
-        this._google?.currentUser?.clearAuthCache(),
-        this._twitter?.logOut(),
-        this._facebook?.logOut(),
-        this._auth.signOut()
-      ]).timeout(timeout);
+      await this._auth.signOut().timeout(timeout);
       this.done();
     } on TimeoutException catch (e) {
       this.timeout(e.toString());
@@ -264,6 +251,27 @@ class FirestoreAuth extends Auth {
       this.error(e.toString());
     }
   }
+
+  GoogleSignIn get _google {
+    if (this.__google == null) this.__google = GoogleSignIn();
+    return this.__google;
+  }
+
+  GoogleSignIn __google;
+  TwitterLogin get _twitter {
+    if (this.__twitter == null)
+      this.__twitter = TwitterLogin(
+          consumerKey: _twitterAPIKey, consumerSecret: _twitterAPISecret);
+    return this.__twitter;
+  }
+
+  TwitterLogin __twitter;
+  FacebookLogin get _facebook {
+    if (this.__facebook == null) this.__facebook = FacebookLogin();
+    return this.__facebook;
+  }
+
+  FacebookLogin __facebook;
 
   /// Link to Facebook.
   ///
@@ -324,6 +332,8 @@ class FirestoreAuth extends Auth {
         return;
       }
       Log.ast("Linked Facebook account to user: %s", [this._link.uid]);
+      if (_onAuthorized != null)
+        await _onAuthorized(this, this._link, this.uid);
       this.authorized(this._link.uid);
     } on TimeoutException catch (e) {
       this.timeout(e.toString());
@@ -393,6 +403,8 @@ class FirestoreAuth extends Auth {
         return;
       }
       Log.ast("Linked Twitter account to user: %s", [this._link.uid]);
+      if (_onAuthorized != null)
+        await _onAuthorized(this, this._link, this.uid);
       this.authorized(this._link.uid);
     } on TimeoutException catch (e) {
       this.timeout(e.toString());
@@ -474,11 +486,85 @@ class FirestoreAuth extends Auth {
         return;
       }
       Log.ast("Linked Apple account to user: %s", [this._link.uid]);
+      if (_onAuthorized != null)
+        await _onAuthorized(this, this._link, this.uid);
       this.authorized(this._link.uid);
     } on TimeoutException catch (e) {
       this.timeout(e.toString());
     } catch (e) {
       this.error(e.toString());
+    }
+  }
+
+  /// Link Google.
+  ///
+  /// Google login dialog appears.
+  ///
+  /// [protorol]: Protocol specification.
+  /// [timeout]: Timeout time.
+  static Future<FirestoreAuth> signInToGoogle(
+      {String protocol, Duration timeout = Const.timeout}) {
+    if (isEmpty(protocol)) protocol = "firestore";
+    String path = Texts.format(_systemPath, [protocol]);
+    FirestoreAuth unit = PathMap.get<FirestoreAuth>(path);
+    if (unit == null) {
+      unit = FirestoreAuth._(path);
+    } else {
+      unit.init();
+    }
+    unit._linkToGoogleProcess(timeout);
+    return unit.future;
+  }
+
+  Future _linkToGoogleProcess(Duration timeout) async {
+    try {
+      await this._prepareProcessInternal(timeout);
+      GoogleSignInAccount googleCurrentUser = this._google.currentUser;
+      if (googleCurrentUser == null) {
+        googleCurrentUser =
+            await this._google.signInSilently().timeout(timeout);
+      }
+      if (googleCurrentUser == null) {
+        googleCurrentUser = await this._google.signIn();
+      }
+      if (googleCurrentUser == null) {
+        this.error("Google user could not get.");
+        return;
+      }
+      if (this._link != null &&
+          this._link.providerData.any(
+              (t) => t.providerId?.contains(GoogleAuthProvider.providerId))) {
+        this.error("This user is already linked to a Google account.");
+        return;
+      }
+      GoogleSignInAuthentication googleAuth =
+          await googleCurrentUser.authentication;
+      AuthCredential credential = GoogleAuthProvider.getCredential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+      if (this._link != null) {
+        this._link =
+            (await this._link.linkWithCredential(credential).timeout(timeout))
+                .user;
+      } else {
+        this._link =
+            (await this._auth.signInWithCredential(credential).timeout(timeout))
+                .user;
+      }
+      if (this._link == null || isEmpty(this._link.uid)) {
+        this.error("User is not found.");
+        return;
+      }
+      Log.ast("Linked Google account to user: %s", [this._link.uid]);
+      if (_onAuthorized != null)
+        await _onAuthorized(this, this._link, this.uid);
+      this.authorized(this._link.uid);
+    } on TimeoutException catch (e) {
+      this.timeout(e.toString());
+    } catch (e) {
+      this.error(e.toString());
+      return;
     }
   }
 
@@ -541,6 +627,8 @@ class FirestoreAuth extends Auth {
         return;
       }
       Log.ast("Linked Email Link to user: %s", [this._link.uid]);
+      if (_onAuthorized != null)
+        await _onAuthorized(this, this._link, this.uid);
       this.authorized(this._link.uid);
     } on TimeoutException catch (e) {
       this.timeout(e.toString());
@@ -674,6 +762,8 @@ class FirestoreAuth extends Auth {
               return;
             }
             Log.ast("Linked Phone number to user: %s", [this._link.uid]);
+            if (_onAuthorized != null)
+              await _onAuthorized(this, this._link, this.uid);
             this.authorized(this._link.uid);
           },
           verificationFailed: (error) {
@@ -742,6 +832,8 @@ class FirestoreAuth extends Auth {
         return;
       }
       Log.ast("Linked Email and Password to user: %s", [this._link.uid]);
+      if (_onAuthorized != null)
+        await _onAuthorized(this, this._link, this.uid);
       this.authorized(this._link.uid);
     } on TimeoutException catch (e) {
       this.timeout(e.toString());
@@ -751,14 +843,29 @@ class FirestoreAuth extends Auth {
     }
   }
 
-  /// Link Google.
+  /// Sign in using the OAuth provider.
   ///
-  /// Google login dialog appears.
+  /// You can use SNS that Firebase supports.
   ///
+  /// [providerCallback]: Credential provider callback.
+  /// [providerId]: Provider ID.
   /// [protorol]: Protocol specification.
   /// [timeout]: Timeout time.
-  static Future<FirestoreAuth> signInToGoogle(
-      {String protocol, Duration timeout = Const.timeout}) {
+  static Future<FirestoreAuth> signInWithProvider(
+      {@required Future<AuthCredential> providerCallback(Duration timeout),
+      @required String providerId,
+      String protocol,
+      Duration timeout = Const.timeout}) {
+    assert(providerCallback != null);
+    assert(isNotEmpty(providerId));
+    if (providerCallback == null) {
+      Log.error("The credential callback is invalid.");
+      return Future.delayed(Duration.zero);
+    }
+    if (isEmpty(providerId)) {
+      Log.error("The provier ID is invalid.");
+      return Future.delayed(Duration.zero);
+    }
     if (isEmpty(protocol)) protocol = "firestore";
     String path = Texts.format(_systemPath, [protocol]);
     FirestoreAuth unit = PathMap.get<FirestoreAuth>(path);
@@ -767,37 +874,29 @@ class FirestoreAuth extends Auth {
     } else {
       unit.init();
     }
-    unit._linkToGoogleProcess(timeout);
+    unit._linkWithProviderProcess(providerCallback, providerId, timeout);
     return unit.future;
   }
 
-  Future _linkToGoogleProcess(Duration timeout) async {
+  Future _linkWithProviderProcess(
+      Future<AuthCredential> providerCallback(Duration timeout),
+      String providerId,
+      Duration timeout) async {
     try {
       await this._prepareProcessInternal(timeout);
-      GoogleSignInAccount googleCurrentUser = this._google.currentUser;
-      if (googleCurrentUser == null) {
-        googleCurrentUser =
-            await this._google.signInSilently().timeout(timeout);
-      }
-      if (googleCurrentUser == null) {
-        googleCurrentUser = await this._google.signIn();
-      }
-      if (googleCurrentUser == null) {
-        this.error("Google user could not get.");
-        return;
-      }
       if (this._link != null &&
-          this._link.providerData.any(
-              (t) => t.providerId?.contains(GoogleAuthProvider.providerId))) {
-        this.error("This user is already linked to a Google account.");
+          this
+              ._link
+              .providerData
+              .any((t) => t.providerId?.contains(providerId))) {
+        this.error("This user is already linked to a $providerId account.");
         return;
       }
-      GoogleSignInAuthentication googleAuth =
-          await googleCurrentUser.authentication;
-      AuthCredential credential = GoogleAuthProvider.getCredential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
-      );
+      AuthCredential credential = await providerCallback(timeout);
+      if (credential == null) {
+        this.error("The credential data is empty.");
+        return;
+      }
       if (this._link != null) {
         this._link =
             (await this._link.linkWithCredential(credential).timeout(timeout))
@@ -811,7 +910,10 @@ class FirestoreAuth extends Auth {
         this.error("User is not found.");
         return;
       }
-      Log.ast("Linked Google account to user: %s", [this._link.uid]);
+      Log.ast("Linked with credential(%s) to user: %s",
+          [credential.providerId, _link.uid]);
+      if (_onAuthorized != null)
+        await _onAuthorized(this, this._link, this.uid);
       this.authorized(this._link.uid);
     } on TimeoutException catch (e) {
       this.timeout(e.toString());
@@ -826,6 +928,8 @@ class FirestoreAuth extends Auth {
       await this._prepareProcessInternal(timeout);
       await this._anonymousProcessInternal(timeout);
       Log.ast("Anonymous login successful: %s", [this._link.uid]);
+      if (_onAuthorized != null)
+        await _onAuthorized(this, this._link, this.uid);
       this.authorized(this._link.uid);
     } on TimeoutException catch (e) {
       this.timeout(e.toString());

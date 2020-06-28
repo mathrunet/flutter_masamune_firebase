@@ -48,6 +48,10 @@ part 'firestore/firestorecollection.dart';
 part 'firestore/searchablefirestorecollection.dart';
 
 part 'auth/firestoreauth.dart';
+part 'auth/googleauth.dart';
+part 'auth/appleauth.dart';
+part 'auth/twitterauth.dart';
+part 'auth/facebookauth.dart';
 
 part 'storage/firestorestorage.dart';
 
