@@ -1,3 +1,7 @@
+## [0.2.8] - Update README (2020.06.29)
+
+* Separated SNS login.
+
 ## [0.2.7] - Update README (2020.06.25)
 
 * Added FirebaseAuth interface.
