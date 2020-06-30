@@ -40,18 +40,10 @@ class UIAuth extends StatelessWidget {
   /// [actionAfterSignIn]: Specifies the action after a successful sign-in.
   /// [actionOnTimeout]: Action on timeout.
   /// [actionOnError]: The action in case of other errors.
-  /// [twitterAPIKey]: Twitter API key.
-  /// [twitterAPISecret]: Twitter API secret.
   /// [dialogTitleWhenAnonymousSignIn]: Dialog title at guest login.
   /// [dialogTextWhenAnonymousSignIn]: Dialog text for guest login.
   /// [forceLogin]: Force login.
   /// [timeout]: Timeout for login.
-  /// [googleSignInText]: Google sign-in text.
-  /// [twitterSignInText]: Twitter sign-in text.
-  /// [facebookSignInText]: Facebook sign-in text.
-  /// [appleSignInText]: Apple sign-in text.
-  /// [emailAndPasswordSignInText]: Email and Password sign-in text.
-  /// [anonymousSignInText]: Anonymous sign-in text.
   UIAuth(
       {this.text,
       this.providers = const [

@@ -294,8 +294,8 @@ class FirestoreCollection extends TaskCollection<FirestoreDocument>
       FirestoreDocument doc = this.data[i];
       if (doc == null) continue;
       doc.delete();
-      this.data.removeAt(i);
     }
+    this.clear();
   }
 
   Query _buildQueryInternal(CollectionReference reference) {

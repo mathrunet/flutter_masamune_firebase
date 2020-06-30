@@ -13,20 +13,12 @@ class UIAuthDialog {
   /// [actionAfterSignIn]: Specifies the action after a successful sign-in.
   /// [actionOnTimeout]: Action on timeout.
   /// [actionOnError]: The action in case of other errors.
-  /// [twitterAPIKey]: Twitter API key.
-  /// [twitterAPISecret]: Twitter API secret.
   /// [dialogTitleWhenAnonymousSignIn]: Dialog title at guest login.
   /// [dialogTextWhenAnonymousSignIn]: Dialog text for guest login.
   /// [forceLogin]: Force login.
   /// [timeout]: Timeout for login.
-  /// [googleSignInText]: Google sign-in text.
-  /// [twitterSignInText]: Twitter sign-in text.
-  /// [facebookSignInText]: Facebook sign-in text.
-  /// [appleSignInText]: Apple sign-in text.
-  /// [emailAndPasswordSignInText]: Email and Password sign-in text.
-  /// [anonymousSignInText]: Anonymous sign-in text.
   static Future show(BuildContext context,
-      {String title,
+      {@required String title,
       List<AuthProviderOptions> providers = const [
         EmailAndPasswordAuth.options,
         AnonymouslyAuth.options
@@ -37,12 +29,7 @@ class UIAuthDialog {
       String dialogTitleWhenAnonymousSignIn = Const.empty,
       String dialogTextWhenAnonymousSignIn = Const.empty,
       bool forceLogin = false,
-      Duration timeout = Const.timeout
-      // String googleSignInText = "Google SignIn",
-      // String twitterSignInText = "Twitter SignIn",
-      // String facebookSignInText = "Facebook SignIn",
-      // String appleSignInText = "Apple SignIn",
-      }) async {
+      Duration timeout = Const.timeout}) async {
     if (context == null || title == null) return;
     try {
       if (!forceLogin && await FirestoreAuth.tryRestoreAuth(timeout: timeout)) {
