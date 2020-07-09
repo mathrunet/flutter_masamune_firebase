@@ -105,7 +105,7 @@ class FirestoreAuth extends Auth {
         this._link = user;
         Log.ast("Logged-in user was found: %s", [this._link.uid]);
         if (_onAuthorized != null)
-          await _onAuthorized(this, this._link, this.uid);
+          await _onAuthorized(this, this._link, this._link.uid);
         this.authorized(this._link.uid);
         return true;
       }
@@ -312,7 +312,7 @@ class FirestoreAuth extends Auth {
       }
       Log.ast("Linked Email Link to user: %s", [this._link.uid]);
       if (_onAuthorized != null)
-        await _onAuthorized(this, this._link, this.uid);
+        await _onAuthorized(this, this._link, this._link.uid);
       this.authorized(this._link.uid);
     } on TimeoutException catch (e) {
       this.timeout(e.toString());
@@ -447,7 +447,7 @@ class FirestoreAuth extends Auth {
             }
             Log.ast("Linked Phone number to user: %s", [this._link.uid]);
             if (_onAuthorized != null)
-              await _onAuthorized(this, this._link, this.uid);
+              await _onAuthorized(this, this._link, this._link.uid);
             this.authorized(this._link.uid);
           },
           verificationFailed: (error) {
@@ -517,7 +517,7 @@ class FirestoreAuth extends Auth {
       }
       Log.ast("Linked Email and Password to user: %s", [this._link.uid]);
       if (_onAuthorized != null)
-        await _onAuthorized(this, this._link, this.uid);
+        await _onAuthorized(this, this._link, this._link.uid);
       this.authorized(this._link.uid);
     } on TimeoutException catch (e) {
       this.timeout(e.toString());
@@ -597,7 +597,7 @@ class FirestoreAuth extends Auth {
       Log.ast("Linked with credential(%s) to user: %s",
           [credential.providerId, _link.uid]);
       if (_onAuthorized != null)
-        await _onAuthorized(this, this._link, this.uid);
+        await _onAuthorized(this, this._link, this._link.uid);
       this.authorized(this._link.uid);
     } on TimeoutException catch (e) {
       this.timeout(e.toString());
@@ -613,7 +613,7 @@ class FirestoreAuth extends Auth {
       await this._anonymousProcessInternal(timeout);
       Log.ast("Anonymous login successful: %s", [this._link.uid]);
       if (_onAuthorized != null)
-        await _onAuthorized(this, this._link, this.uid);
+        await _onAuthorized(this, this._link, this._link.uid);
       this.authorized(this._link.uid);
     } on TimeoutException catch (e) {
       this.timeout(e.toString());
