@@ -1,3 +1,7 @@
+## [0.2.8] - Update README (2020.07.10)
+
+* Supports downloading Firebase storage.
+
 ## [0.2.8] - Update README (2020.06.29)
 
 * Separated SNS login.
