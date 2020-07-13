@@ -64,7 +64,8 @@ class FirestoreStorage extends TaskUnit {
   StorageReference __reference;
 
   /// Firebase Storage bucket domain.
-  String get storageBucket => this._storageBucket;
+  String get storageBucket =>
+      this._storageBucket ?? FirebaseStorage.instance?.storageBucket;
   String _storageBucket;
 
   /// Associated local file.
@@ -195,10 +196,10 @@ class FirestoreStorage extends TaskUnit {
         this.error("Firebase is not initialized and authenticated.");
         return;
       }
-      this.__storage = isEmpty(this.storageBucket)
+      this.__storage = isEmpty(this._storageBucket)
           ? FirebaseStorage.instance
           : FirebaseStorage(
-              app: this._app.app, storageBucket: this.storageBucket);
+              app: this._app.app, storageBucket: this._storageBucket);
       this.__reference = this._storage.ref().child(this.rawPath.path);
       File cacheFile = File(cachePath);
       if (await cacheFile.exists().timeout(timeout)) {
@@ -250,10 +251,10 @@ class FirestoreStorage extends TaskUnit {
         this.error("Firebase is not initialized and authenticated.");
         return;
       }
-      this.__storage = isEmpty(this.storageBucket)
+      this.__storage = isEmpty(this._storageBucket)
           ? FirebaseStorage.instance
           : FirebaseStorage(
-              app: this._app.app, storageBucket: this.storageBucket);
+              app: this._app.app, storageBucket: this._storageBucket);
       this.__reference = this._storage.ref().child(this.rawPath.path);
       StorageUploadTask uploadTask = this.__reference.putFile(file);
       StorageTaskSnapshot snapshot =
