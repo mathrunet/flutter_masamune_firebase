@@ -29,6 +29,10 @@ class Firebase extends TaskUnit {
   /// Firebase application.
   FirebaseApp get app => this._app;
   FirebaseApp _app;
+
+  /// Firebase options.
+  FirebaseOptions get options => this._options;
+  FirebaseOptions _options;
   Firestore _db;
   Queue<FirestoreDocument> _updateStack = QueuePool.get();
   void _startUpdate() {
@@ -133,6 +137,7 @@ class Firebase extends TaskUnit {
       if (this._app == null || this._db == null) {
         this.error("FirebaseApp is not found.");
       } else {
+        this._options = await this._app.options;
         this._startUpdate();
         this.done();
       }

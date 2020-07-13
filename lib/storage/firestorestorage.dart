@@ -65,7 +65,7 @@ class FirestoreStorage extends TaskUnit {
 
   /// Firebase Storage bucket domain.
   String get storageBucket =>
-      this._storageBucket ?? FirebaseStorage.instance?.storageBucket;
+      this._storageBucket ?? this._app?.options?.storageBucket;
   String _storageBucket;
 
   /// Associated local file.
@@ -74,7 +74,7 @@ class FirestoreStorage extends TaskUnit {
 
   /// URL path to the file.
   String get url =>
-      "https://storage.googleapis.com/${this.storageBucket}/${this.path}";
+      "https://firebasestorage.googleapis.com/v0/b/${this.storageBucket}/o/${this.path}?alt=media";
 
   /// Perform upload.
   ///
