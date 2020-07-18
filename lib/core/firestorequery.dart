@@ -12,7 +12,7 @@ class FirestoreQuery {
   ///
   /// It is possible to query the collection by setting this in FirestoreCollection.
   FirestoreQuery() {
-    this.key = null;
+    this._key = null;
     this._type = FirestoreQueryType.none;
   }
 
@@ -27,7 +27,7 @@ class FirestoreQuery {
   FirestoreQuery.equalTo(String key, dynamic value,
       {int limit = -1, int index = 0}) {
     this._type = FirestoreQueryType.equalTo;
-    this.key = key;
+    this._key = key;
     this.value = value;
     this.limit = limit;
     this.index = index;
@@ -44,7 +44,7 @@ class FirestoreQuery {
   FirestoreQuery.lowerThan(String key, double max,
       {int limit = -1, int index = 0}) {
     this._type = FirestoreQueryType.lowerThan;
-    this.key = key;
+    this._key = key;
     this.value = max;
     this.limit = limit;
     this.index = index;
@@ -61,7 +61,7 @@ class FirestoreQuery {
   FirestoreQuery.higherThan(String key, double min,
       {int limit = -1, int index = 0}) {
     this._type = FirestoreQueryType.higherThan;
-    this.key = key;
+    this._key = key;
     this.value = min;
     this.limit = limit;
     this.index = index;
@@ -78,7 +78,7 @@ class FirestoreQuery {
   FirestoreQuery.range(String key, double min, double max,
       {int limit = -1, int index = 0}) {
     this._type = FirestoreQueryType.range;
-    this.key = key;
+    this._key = key;
     this.value = Range(min, max);
     this.limit = limit;
     this.index = index;
@@ -95,7 +95,7 @@ class FirestoreQuery {
   FirestoreQuery.contains(String key, dynamic value,
       {int limit = -1, int index = 0}) {
     this._type = FirestoreQueryType.arrayContains;
-    this.key = key;
+    this._key = key;
     this.value = value;
     this.limit = limit;
     this.index = index;
@@ -112,7 +112,7 @@ class FirestoreQuery {
   FirestoreQuery.containsAny(String key, Iterable values,
       {int limit = -1, int index = 0}) {
     this._type = FirestoreQueryType.arrayContainsAny;
-    this.key = key;
+    this._key = key;
     this.contains.addAll(values);
     this.limit = limit;
     this.index = index;
@@ -129,7 +129,7 @@ class FirestoreQuery {
   FirestoreQuery.inArray(String key, Iterable values,
       {int limit = -1, int index = 0}) {
     this._type = FirestoreQueryType.inArray;
-    this.key = key;
+    this._key = key;
     this.contains.addAll(values);
     this.limit = limit;
     this.index = index;
@@ -140,7 +140,42 @@ class FirestoreQuery {
   FirestoreQueryType _type = FirestoreQueryType.none;
 
   /// Query key.
-  String key;
+  String get key => this._key;
+  String _key;
+
+  /// Sort in ascending order.
+  ///
+  /// You can specify a sort key,
+  /// but if you want to use a different key from the query key,
+  /// you need to create a composite index.
+  ///
+  /// [key]: Key for sorting.
+  FirestoreQuery orderByAsc([String key]) {
+    this._orderBy = OrderBy.asc;
+    this._orderByKey = key;
+    return this;
+  }
+
+  /// Sort in descending order.
+  ///
+  /// You can specify a sort key,
+  /// but if you want to use a different key from the query key,
+  /// you need to create a composite index.
+  ///
+  /// [key]: Key for sorting.
+  FirestoreQuery orderByDesc([String key]) {
+    this._orderBy = OrderBy.desc;
+    this._orderByKey = key;
+    return this;
+  }
+
+  /// Order by.
+  OrderBy get orderBy => this._orderBy;
+  OrderBy _orderBy = OrderBy.none;
+
+  /// Order by key.
+  String get orderByKey => this._orderByKey;
+  String _orderByKey;
 
   /// The actual value to query.
   ///

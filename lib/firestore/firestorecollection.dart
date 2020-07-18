@@ -354,20 +354,46 @@ class FirestoreCollection extends TaskCollection<FirestoreDocument>
   }
 
   Query _buildOrderInternal(Query fquery) {
-    switch (this.orderBy) {
+    switch (this.query.orderBy) {
       case OrderBy.asc:
         fquery = (this.query.limit < 0)
-            ? fquery.orderBy(this.query.key)
-            : fquery.orderBy(this.query.key).startAt(
+            ? fquery.orderBy(this.query.orderByKey ?? this.query.key)
+            : fquery.orderBy(this.query.orderByKey ?? this.query.key).startAt(
                 [this.query.index * this.query.limit]).limit(this.query.limit);
         break;
       case OrderBy.desc:
         fquery = (this.query.limit < 0)
-            ? fquery.orderBy(this.query.key, descending: true)
-            : fquery.orderBy(this.query.key, descending: true).startAt(
-                [this.query.index * this.query.limit]).limit(this.query.limit);
+            ? fquery.orderBy(this.query.orderByKey ?? this.query.key,
+                descending: true)
+            : fquery
+                .orderBy(this.query.orderByKey ?? this.query.key,
+                    descending: true)
+                .startAt([this.query.index * this.query.limit]).limit(
+                    this.query.limit);
         break;
       default:
+        switch (this.orderBy) {
+          case OrderBy.asc:
+            fquery = (this.query.limit < 0)
+                ? fquery.orderBy(this.query.key ?? this.orderByKey)
+                : fquery
+                    .orderBy(this.query.key ?? this.orderByKey)
+                    .startAt([this.query.index * this.query.limit]).limit(
+                        this.query.limit);
+            break;
+          case OrderBy.desc:
+            fquery = (this.query.limit < 0)
+                ? fquery.orderBy(this.query.key ?? this.orderByKey,
+                    descending: true)
+                : fquery
+                    .orderBy(this.query.key ?? this.orderByKey,
+                        descending: true)
+                    .startAt([this.query.index * this.query.limit]).limit(
+                        this.query.limit);
+            break;
+          default:
+            break;
+        }
         break;
     }
     return fquery;

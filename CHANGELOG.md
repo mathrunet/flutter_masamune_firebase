@@ -1,4 +1,8 @@
-## [0.2.8] - Update README (2020.07.10)
+## [0.2.10] - Update README (2020.07.19)
+
+* Supports sorting by FirestoreCollection by compound index.
+
+## [0.2.9] - Update README (2020.07.10)
 
 * Supports downloading Firebase storage.
 
