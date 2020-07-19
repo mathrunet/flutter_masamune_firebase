@@ -75,17 +75,7 @@ class SearchableFirestoreCollection extends TaskCollection<FirestoreDocument>
   }
 
   FirestoreAuth __auth;
-  Query get _reference {
-    if (this.__reference == null &&
-        this.rawPath != null &&
-        isNotEmpty(this.rawPath.path)) {
-      this.__reference = this._app._db.collection(this.rawPath.path);
-    }
-    return this.__reference;
-  }
-
-  Query __reference;
-  StreamSubscription<QuerySnapshot> _listener;
+  List<_FirestoreCollectionListener> _listener = ListPool.get();
 
   /// Perform a full text search in Firestore using the fields you created the map in Bigram.
   ///
@@ -235,19 +225,129 @@ class SearchableFirestoreCollection extends TaskCollection<FirestoreDocument>
     return this.future;
   }
 
+  /// Read the following data.
+  Future<T> next<T extends IFirestoreChangeListener>() {
+    if (!this.isDone) {
+      Log.error("Loading is not finished yet.");
+      return this.future;
+    }
+    this.init();
+    this._fatchNext();
+    return this.future;
+  }
+
   void _constructListener() async {
     if (isNotEmpty(this.searchText)) this._isSearching = true;
     try {
-      if (this._listener != null) {
-        await this._listener.cancel();
-        this._listener = null;
+      if (this._listener.length > 0) {
+        await Future.wait(this._listener.map((e) => e?.listener?.cancel()));
+        this._listener.clear();
       }
       if (this._app == null) this.__app = await Firebase.initialize();
       if (this._auth == null)
         this.__auth = await FirestoreAuth.signIn(protocol: this.protocol);
-      this.__reference =
+      _FirestoreCollectionListener listener = _FirestoreCollectionListener();
+      listener.reference =
           this._buildQueryInternal(this._app._db.collection(this.rawPath.path));
-      this._listener = this._reference.snapshots().listen((snapshot) {
+      listener.listener = listener.reference.snapshots().listen((snapshot) {
+        listener.snapshot = snapshot;
+        Timestamp updatedTime;
+        Map<String, Map<String, dynamic>> data = MapPool.get();
+        DocumentSnapshot prev = listener.last;
+        for (DocumentSnapshot doc in snapshot.documents) {
+          if (doc == null || !doc.exists) continue;
+          data[doc.documentID] = doc.data;
+          if (doc.data.containsKey(Const.time)) {
+            if (updatedTime == null ||
+                updatedTime.compareTo(doc.data[Const.time]) < 0)
+              updatedTime = doc.data[Const.time];
+          }
+          listener.last = doc;
+        }
+        if (prev != null && prev != listener.last) {
+          this._fetchAt(this._listener.indexOf(listener) + 1);
+        }
+        this._done(
+            data,
+            listener,
+            updatedTime != null
+                ? updatedTime.millisecondsSinceEpoch
+                : DateTime.now().frameMillisecondsSinceEpoch);
+      });
+      this._listener.add(listener);
+    } catch (e) {
+      this.error(e.toString());
+    }
+  }
+
+  void _fatchNext() async {
+    if (isNotEmpty(this.searchText)) this._isSearching = true;
+    try {
+      if (this._listener.length <= 0) {
+        this._constructListener();
+        return;
+      }
+      _FirestoreCollectionListener last = this._listener.last;
+      if (this.limit < 0 || last.snapshot.documents.length < this.limit) {
+        this._isSearching = false;
+        this.done();
+        return;
+      }
+      if (this._app == null) this.__app = await Firebase.initialize();
+      if (this._auth == null)
+        this.__auth = await FirestoreAuth.signIn(protocol: this.protocol);
+      _FirestoreCollectionListener listener = _FirestoreCollectionListener();
+      listener.reference =
+          this._buildQueryInternal(this._app._db.collection(this.rawPath.path));
+      listener.reference =
+          this._buildPositionInternal(listener.reference, last.last);
+      listener.listener = listener.reference.snapshots().listen((snapshot) {
+        listener.snapshot = snapshot;
+        Timestamp updatedTime;
+        Map<String, Map<String, dynamic>> data = MapPool.get();
+        DocumentSnapshot prev = listener.last;
+        for (DocumentSnapshot doc in snapshot.documents) {
+          if (doc == null || !doc.exists) continue;
+          data[doc.documentID] = doc.data;
+          if (doc.data.containsKey(Const.time)) {
+            if (updatedTime == null ||
+                updatedTime.compareTo(doc.data[Const.time]) < 0)
+              updatedTime = doc.data[Const.time];
+          }
+          listener.last = doc;
+        }
+        if (prev != null && prev != listener.last) {
+          this._fetchAt(this._listener.indexOf(listener) + 1);
+        }
+        this._done(
+            data,
+            listener,
+            updatedTime != null
+                ? updatedTime.millisecondsSinceEpoch
+                : DateTime.now().frameMillisecondsSinceEpoch);
+      });
+      this._listener.add(listener);
+    } catch (e) {
+      this.error(e.toString());
+    }
+  }
+
+  Future _fetchAt(int index) async {
+    try {
+      if (index < 0 || this._listener.length <= index) return;
+      _FirestoreCollectionListener listener = this._listener[index];
+      if (listener == null) return;
+      if (this._app == null) this.__app = await Firebase.initialize();
+      if (this._auth == null)
+        this.__auth = await FirestoreAuth.signIn(protocol: this.protocol);
+      await listener.reset();
+      listener.reference =
+          this._buildQueryInternal(this._app._db.collection(this.rawPath.path));
+      if (index > 0)
+        listener.reference = this._buildPositionInternal(
+            listener.reference, this._listener[index - 1].last);
+      listener.listener = listener.reference.snapshots().listen((snapshot) {
+        listener.snapshot = snapshot;
         Timestamp updatedTime;
         Map<String, Map<String, dynamic>> data = MapPool.get();
         for (DocumentSnapshot doc in snapshot.documents) {
@@ -258,9 +358,12 @@ class SearchableFirestoreCollection extends TaskCollection<FirestoreDocument>
                 updatedTime.compareTo(doc.data[Const.time]) < 0)
               updatedTime = doc.data[Const.time];
           }
+          listener.last = doc;
         }
+        this._fetchAt(index + 1);
         this._done(
             data,
+            listener,
             updatedTime != null
                 ? updatedTime.millisecondsSinceEpoch
                 : DateTime.now().frameMillisecondsSinceEpoch);
@@ -270,7 +373,8 @@ class SearchableFirestoreCollection extends TaskCollection<FirestoreDocument>
     }
   }
 
-  void _done(Map<String, Map<String, dynamic>> data, int updatedTime) {
+  void _done(Map<String, Map<String, dynamic>> data,
+      _FirestoreCollectionListener listener, int updatedTime) {
     this._isSearching = false;
     if (this.isDone &&
         this.length == data.length &&
@@ -295,9 +399,14 @@ class SearchableFirestoreCollection extends TaskCollection<FirestoreDocument>
       for (int i = this.data.length - 1; i >= 0; i--) {
         FirestoreDocument doc = this.data[i];
         if (doc == null) continue;
-        if (!data.containsKey(doc.id)) this.remove(doc);
+        if (!data.containsKey(doc.id) &&
+            !this
+                ._listener
+                .any((element) => element?.data?.containsKey(doc.id) ?? false))
+          this.remove(doc);
       }
       Log.ast("Updated data: %s (%s)", [this.path, this.runtimeType]);
+      listener.data = data;
     }
     this.sort();
     this.done();
@@ -372,6 +481,12 @@ class SearchableFirestoreCollection extends TaskCollection<FirestoreDocument>
     return fquery;
   }
 
+  Query _buildPositionInternal(Query fquery, DocumentSnapshot lastSnapshot) {
+    if (lastSnapshot == null) return fquery;
+    if (this.orderBy == OrderBy.none) return fquery;
+    return fquery.startAfterDocument(lastSnapshot);
+  }
+
   /// True if communicating with the server for saving or deleting.
   bool get isUpdating {
     for (FirestoreDocument doc in this.data.values) {
@@ -398,10 +513,9 @@ class SearchableFirestoreCollection extends TaskCollection<FirestoreDocument>
   }
 
   void _disposeInternal() {
-    this.__reference = null;
-    if (this._listener == null) return;
-    this._listener.cancel();
-    this._listener = null;
+    if (this._listener.length <= 0) return;
+    this._listener.forEach((e) => e?.listener?.cancel());
+    this._listener.clear();
   }
 
   /// Callback event when application quit.

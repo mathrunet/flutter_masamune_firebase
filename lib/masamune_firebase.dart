@@ -34,6 +34,7 @@ part 'interface/ifirestorecollection.dart';
 
 part 'core/firestorequerytype.dart';
 part 'core/typedef.dart';
+part 'core/firestorecollectionlistener.dart';
 part 'core/firestorequery.dart';
 part 'core/firestoremeta.dart';
 

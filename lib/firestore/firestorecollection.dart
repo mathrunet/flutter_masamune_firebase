@@ -57,17 +57,7 @@ class FirestoreCollection extends TaskCollection<FirestoreDocument>
   }
 
   FirestoreAuth __auth;
-  Query get _reference {
-    if (this.__reference == null &&
-        this.rawPath != null &&
-        isNotEmpty(this.rawPath.path)) {
-      this.__reference = this._app._db.collection(this.rawPath.path);
-    }
-    return this.__reference;
-  }
-
-  Query __reference;
-  StreamSubscription<QuerySnapshot> _listener;
+  List<_FirestoreCollectionListener> _listener = ListPool.get();
 
   /// Get the Firestore collection.
   ///
@@ -191,18 +181,128 @@ class FirestoreCollection extends TaskCollection<FirestoreDocument>
     return this.future;
   }
 
+  /// Read the following data.
+  Future<T> next<T extends IFirestoreChangeListener>() {
+    if (!this.isDone) {
+      Log.error("Loading is not finished yet.");
+      return this.future;
+    }
+    this.init();
+    this._fetchNext();
+    return this.future;
+  }
+
   void _constructListener() async {
     try {
-      if (this._listener != null) {
-        await this._listener.cancel();
-        this._listener = null;
+      if (this._listener.length > 0) {
+        await Future.wait(this._listener.map((e) => e?.listener?.cancel()));
+        this._listener.clear();
       }
       if (this._app == null) this.__app = await Firebase.initialize();
       if (this._auth == null)
         this.__auth = await FirestoreAuth.signIn(protocol: this.protocol);
-      this.__reference =
+      _FirestoreCollectionListener listener = _FirestoreCollectionListener();
+      listener.reference =
           this._buildQueryInternal(this._app._db.collection(this.rawPath.path));
-      this._listener = this._reference.snapshots().listen((snapshot) {
+      listener.listener = listener.reference.snapshots().listen((snapshot) {
+        listener.snapshot = snapshot;
+        Timestamp updatedTime;
+        Map<String, Map<String, dynamic>> data = MapPool.get();
+        DocumentSnapshot prev = listener.last;
+        for (DocumentSnapshot doc in snapshot.documents) {
+          if (doc == null || !doc.exists) continue;
+          data[doc.documentID] = doc.data;
+          if (doc.data.containsKey(Const.time)) {
+            if (updatedTime == null ||
+                updatedTime.compareTo(doc.data[Const.time]) < 0)
+              updatedTime = doc.data[Const.time];
+          }
+          listener.last = doc;
+        }
+        if (prev != null && prev != listener.last) {
+          this._fetchAt(this._listener.indexOf(listener) + 1);
+        }
+        this._done(
+            data,
+            listener,
+            updatedTime != null
+                ? updatedTime.millisecondsSinceEpoch
+                : DateTime.now().frameMillisecondsSinceEpoch);
+      });
+      this._listener.add(listener);
+    } catch (e) {
+      this.error(e.toString());
+    }
+  }
+
+  void _fetchNext() async {
+    try {
+      if (this._listener.length <= 0) {
+        this._constructListener();
+        return;
+      }
+      _FirestoreCollectionListener last = this._listener.last;
+      if (this.query == null ||
+          this.query.limit < 0 ||
+          last.snapshot.documents.length < this.query.limit) {
+        this.done();
+        return;
+      }
+      if (this._app == null) this.__app = await Firebase.initialize();
+      if (this._auth == null)
+        this.__auth = await FirestoreAuth.signIn(protocol: this.protocol);
+      _FirestoreCollectionListener listener = _FirestoreCollectionListener();
+      listener.reference =
+          this._buildQueryInternal(this._app._db.collection(this.rawPath.path));
+      listener.reference =
+          this._buildPositionInternal(listener.reference, last.last);
+      listener.listener = listener.reference.snapshots().listen((snapshot) {
+        listener.snapshot = snapshot;
+        Timestamp updatedTime;
+        Map<String, Map<String, dynamic>> data = MapPool.get();
+        DocumentSnapshot prev = listener.last;
+        for (DocumentSnapshot doc in snapshot.documents) {
+          if (doc == null || !doc.exists) continue;
+          data[doc.documentID] = doc.data;
+          if (doc.data.containsKey(Const.time)) {
+            if (updatedTime == null ||
+                updatedTime.compareTo(doc.data[Const.time]) < 0)
+              updatedTime = doc.data[Const.time];
+          }
+          listener.last = doc;
+        }
+        if (prev != null && prev != listener.last) {
+          this._fetchAt(this._listener.indexOf(listener) + 1);
+        }
+        this._done(
+            data,
+            listener,
+            updatedTime != null
+                ? updatedTime.millisecondsSinceEpoch
+                : DateTime.now().frameMillisecondsSinceEpoch);
+      });
+      this._listener.add(listener);
+    } catch (e) {
+      this.error(e.toString());
+    }
+  }
+
+  Future _fetchAt(int index) async {
+    try {
+      if (index < 0 || this._listener.length <= index) return;
+      _FirestoreCollectionListener listener = this._listener[index];
+      if (listener == null) return;
+      if (this._app == null) this.__app = await Firebase.initialize();
+      if (this._auth == null)
+        this.__auth = await FirestoreAuth.signIn(protocol: this.protocol);
+      await listener.reset();
+      listener.reference =
+          this._buildQueryInternal(this._app._db.collection(this.rawPath.path));
+      if (index > 0)
+        listener.reference = this._buildPositionInternal(
+            listener.reference, this._listener[index - 1].last);
+      listener.listener = listener.reference.snapshots().listen((snapshot) {
+        listener.snapshot = snapshot;
         Timestamp updatedTime;
         Map<String, Map<String, dynamic>> data = MapPool.get();
         for (DocumentSnapshot doc in snapshot.documents) {
@@ -213,9 +313,12 @@ class FirestoreCollection extends TaskCollection<FirestoreDocument>
                 updatedTime.compareTo(doc.data[Const.time]) < 0)
               updatedTime = doc.data[Const.time];
           }
+          listener.last = doc;
         }
+        this._fetchAt(index + 1);
         this._done(
             data,
+            listener,
             updatedTime != null
                 ? updatedTime.millisecondsSinceEpoch
                 : DateTime.now().frameMillisecondsSinceEpoch);
@@ -225,7 +328,8 @@ class FirestoreCollection extends TaskCollection<FirestoreDocument>
     }
   }
 
-  void _done(Map<String, Map<String, dynamic>> data, int updatedTime) {
+  void _done(Map<String, Map<String, dynamic>> data,
+      _FirestoreCollectionListener listener, int updatedTime) {
     if (this.isDone &&
         this.length == data.length &&
         updatedTime <= this.updatedTime) return;
@@ -249,14 +353,18 @@ class FirestoreCollection extends TaskCollection<FirestoreDocument>
       for (int i = this.data.length - 1; i >= 0; i--) {
         FirestoreDocument doc = this.data[i];
         if (doc == null) continue;
-        if (!data.containsKey(doc.id)) this.remove(doc);
+        if (!data.containsKey(doc.id) &&
+            !this
+                ._listener
+                .any((element) => element?.data?.containsKey(doc.id) ?? false))
+          this.remove(doc);
       }
       Log.ast("Updated data: %s (%s)", [this.path, this.runtimeType]);
+      listener.data = data;
     }
     this.sort();
     this.notifyUpdate();
     this.done();
-    data.release();
   }
 
   void _setInternal(Iterable<FirestoreDocument> children) {
@@ -358,8 +466,9 @@ class FirestoreCollection extends TaskCollection<FirestoreDocument>
       case OrderBy.asc:
         fquery = (this.query.limit < 0)
             ? fquery.orderBy(this.query.orderByKey ?? this.query.key)
-            : fquery.orderBy(this.query.orderByKey ?? this.query.key).startAt(
-                [this.query.index * this.query.limit]).limit(this.query.limit);
+            : fquery
+                .orderBy(this.query.orderByKey ?? this.query.key)
+                .limit(this.query.limit);
         break;
       case OrderBy.desc:
         fquery = (this.query.limit < 0)
@@ -368,8 +477,7 @@ class FirestoreCollection extends TaskCollection<FirestoreDocument>
             : fquery
                 .orderBy(this.query.orderByKey ?? this.query.key,
                     descending: true)
-                .startAt([this.query.index * this.query.limit]).limit(
-                    this.query.limit);
+                .limit(this.query.limit);
         break;
       default:
         switch (this.orderBy) {
@@ -378,8 +486,7 @@ class FirestoreCollection extends TaskCollection<FirestoreDocument>
                 ? fquery.orderBy(this.query.key ?? this.orderByKey)
                 : fquery
                     .orderBy(this.query.key ?? this.orderByKey)
-                    .startAt([this.query.index * this.query.limit]).limit(
-                        this.query.limit);
+                    .limit(this.query.limit);
             break;
           case OrderBy.desc:
             fquery = (this.query.limit < 0)
@@ -388,8 +495,7 @@ class FirestoreCollection extends TaskCollection<FirestoreDocument>
                 : fquery
                     .orderBy(this.query.key ?? this.orderByKey,
                         descending: true)
-                    .startAt([this.query.index * this.query.limit]).limit(
-                        this.query.limit);
+                    .limit(this.query.limit);
             break;
           default:
             break;
@@ -401,8 +507,13 @@ class FirestoreCollection extends TaskCollection<FirestoreDocument>
 
   Query _buildLimitInternal(Query fquery) {
     if (this.query.limit < 0) return fquery;
-    return fquery
-        .startAt([this.query.index * this.query.limit]).limit(this.query.limit);
+    return fquery.limit(this.query.limit);
+  }
+
+  Query _buildPositionInternal(Query fquery, DocumentSnapshot lastSnapshot) {
+    if (lastSnapshot == null) return fquery;
+    if (this.query.orderBy == OrderBy.none) return fquery;
+    return fquery.startAfterDocument(lastSnapshot);
   }
 
   /// Set the query.
@@ -426,6 +537,22 @@ class FirestoreCollection extends TaskCollection<FirestoreDocument>
     return this.rawPath.scheme;
   }
 
+  /// Order for sorting.
+  @override
+  OrderBy get orderBy {
+    if (this.query == null || this.query.orderBy == OrderBy.none)
+      return super.orderBy;
+    return this.query.orderBy;
+  }
+
+  /// Compare key for sorting.
+  @override
+  String get orderByKey {
+    if (this.query == null || this.query.orderBy == OrderBy.none)
+      return super.orderByKey;
+    return this.query.orderByKey ?? this.query.key ?? this.orderByKey;
+  }
+
   /// Destroys the object.
   ///
   /// Destroyed objects are not allowed.
@@ -436,10 +563,9 @@ class FirestoreCollection extends TaskCollection<FirestoreDocument>
   }
 
   void _disposeInternal() {
-    this.__reference = null;
-    if (this._listener == null) return;
-    this._listener.cancel();
-    this._listener = null;
+    if (this._listener.length <= 0) return;
+    this._listener.forEach((e) => e?.listener?.cancel());
+    this._listener.clear();
   }
 
   /// Callback event when application quit.

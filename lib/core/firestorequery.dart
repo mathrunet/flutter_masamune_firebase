@@ -22,15 +22,10 @@ class FirestoreQuery {
   ///
   /// [key]: Key to query.
   /// [value]: Value to query.
-  /// [limit]: Maximum number to get.
-  /// [index]: Number of acquired pages.
-  FirestoreQuery.equalTo(String key, dynamic value,
-      {int limit = -1, int index = 0}) {
+  FirestoreQuery.equalTo(String key, dynamic value) {
     this._type = FirestoreQueryType.equalTo;
     this._key = key;
     this.value = value;
-    this.limit = limit;
-    this.index = index;
   }
 
   /// Set up a Firestore query.
@@ -39,15 +34,10 @@ class FirestoreQuery {
   ///
   /// [key]: Key to query.
   /// [value]: Value to query.
-  /// [limit]: Maximum number to get.
-  /// [index]: Number of acquired pages.
-  FirestoreQuery.lowerThan(String key, double max,
-      {int limit = -1, int index = 0}) {
+  FirestoreQuery.lowerThan(String key, double max) {
     this._type = FirestoreQueryType.lowerThan;
     this._key = key;
     this.value = max;
-    this.limit = limit;
-    this.index = index;
   }
 
   /// Set up a Firestore query.
@@ -56,15 +46,10 @@ class FirestoreQuery {
   ///
   /// [key]: Key to query.
   /// [value]: Value to query.
-  /// [limit]: Maximum number to get.
-  /// [index]: Number of acquired pages.
-  FirestoreQuery.higherThan(String key, double min,
-      {int limit = -1, int index = 0}) {
+  FirestoreQuery.higherThan(String key, double min) {
     this._type = FirestoreQueryType.higherThan;
     this._key = key;
     this.value = min;
-    this.limit = limit;
-    this.index = index;
   }
 
   /// Set up a Firestore query.
@@ -73,15 +58,10 @@ class FirestoreQuery {
   ///
   /// [key]: Key to query.
   /// [value]: Value to query.
-  /// [limit]: Maximum number to get.
-  /// [index]: Number of acquired pages.
-  FirestoreQuery.range(String key, double min, double max,
-      {int limit = -1, int index = 0}) {
+  FirestoreQuery.range(String key, double min, double max) {
     this._type = FirestoreQueryType.range;
     this._key = key;
     this.value = Range(min, max);
-    this.limit = limit;
-    this.index = index;
   }
 
   /// Set up a Firestore query.
@@ -90,15 +70,10 @@ class FirestoreQuery {
   ///
   /// [key]: Key to query.
   /// [value]: Value to query.
-  /// [limit]: Maximum number to get.
-  /// [index]: Number of acquired pages.
-  FirestoreQuery.contains(String key, dynamic value,
-      {int limit = -1, int index = 0}) {
+  FirestoreQuery.contains(String key, dynamic value) {
     this._type = FirestoreQueryType.arrayContains;
     this._key = key;
     this.value = value;
-    this.limit = limit;
-    this.index = index;
   }
 
   /// Set up a Firestore query.
@@ -107,15 +82,10 @@ class FirestoreQuery {
   ///
   /// [key]: Key to query.
   /// [value]: Value to query.
-  /// [limit]: Maximum number to get.
-  /// [index]: Number of acquired pages.
-  FirestoreQuery.containsAny(String key, Iterable values,
-      {int limit = -1, int index = 0}) {
+  FirestoreQuery.containsAny(String key, Iterable values) {
     this._type = FirestoreQueryType.arrayContainsAny;
     this._key = key;
     this.contains.addAll(values);
-    this.limit = limit;
-    this.index = index;
   }
 
   /// Set up a Firestore query.
@@ -124,15 +94,10 @@ class FirestoreQuery {
   ///
   /// [key]: Key to query.
   /// [value]: Value to query.
-  /// [limit]: Maximum number to get.
-  /// [index]: Number of acquired pages.
-  FirestoreQuery.inArray(String key, Iterable values,
-      {int limit = -1, int index = 0}) {
+  FirestoreQuery.inArray(String key, Iterable values) {
     this._type = FirestoreQueryType.inArray;
     this._key = key;
     this.contains.addAll(values);
-    this.limit = limit;
-    this.index = index;
   }
 
   /// Set the query type.
@@ -215,16 +180,17 @@ class FirestoreQuery {
   Range _range = Range(0, 1);
   dynamic _value = 0;
 
+  /// Set a limit on the number of items that can be retrieved by query.
+  ///
+  /// [limit]: Limit number.
+  FirestoreQuery limitAt([int limit]) {
+    this._limit = limit == null ? -1 : limit.limit(0, 10000);
+    return this;
+  }
+
   /// Get the maximum number of elements by query.
   int get limit {
     return this._limit.limit(-1, 10000);
-  }
-
-  /// Set the maximum number of elements by query.
-  ///
-  /// Automatically set to -1 if less than 0.
-  set limit(int value) {
-    this._limit = value.limit(-1, 10000);
   }
 
   int _limit = -1;
@@ -232,15 +198,6 @@ class FirestoreQuery {
   /// Array used in [arrayContainsAny] or [inArray].
   List get contains => this._contains;
   List _contains = ListPool.get();
-
-  /// Number of pages obtained by limiting the query.
-  int get index => this._index;
-
-  /// Number of pages obtained by limiting the query.
-  ///
-  /// [index]: Index.
-  set index(int index) => this._index = index.limitLow(0);
-  int _index = 0;
 }
 
 /// Range class.
