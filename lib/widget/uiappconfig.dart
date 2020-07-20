@@ -26,7 +26,7 @@ class UIAppConfig {
             text: "The app is currently under maintenance. "
                     "Detailed information on maintenance will be announced on the official website."
                 .localize(),
-            submitText: "Open".localize(), submitAction: () async {
+            submitText: "Open".localize(), onSubmit: () async {
           openURL(officialURL);
           await SystemNavigator.pop();
         }, popOnPress: false, disableBackKey: true, willShowRepetition: true);
@@ -41,7 +41,7 @@ class UIAppConfig {
             title: "Please update".localize(),
             text: "App update required. Get the latest version from the store."
                 .localize(),
-            submitText: "Open".localize(), submitAction: () async {
+            submitText: "Open".localize(), onSubmit: () async {
           openURL(androidStoreURL);
           await SystemNavigator.pop();
         }, popOnPress: false, disableBackKey: true, willShowRepetition: true);
@@ -53,7 +53,7 @@ class UIAppConfig {
             title: "Please update".localize(),
             text: "App update required. Get the latest version from the store."
                 .localize(),
-            submitText: "Open".localize(), submitAction: () async {
+            submitText: "Open".localize(), onSubmit: () async {
           openURL(iosStoreURL);
           await SystemNavigator.pop();
         }, popOnPress: false, disableBackKey: true, willShowRepetition: true);
@@ -66,7 +66,7 @@ class UIAppConfig {
             text: "The app is currently under maintenance. "
                     "Detailed information on maintenance will be announced on the official website."
                 .localize(),
-            submitText: "Open".localize(), submitAction: () async {
+            submitText: "Open".localize(), onSubmit: () async {
           openURL(officialURL);
           await SystemNavigator.pop();
         }, popOnPress: false, disableBackKey: true, willShowRepetition: true);
@@ -80,7 +80,7 @@ class UIAppConfig {
             title: "Please update".localize(),
             text: "App update required. Get the latest version from the store."
                 .localize(),
-            submitText: "Open".localize(), submitAction: () async {
+            submitText: "Open".localize(), onSubmit: () async {
           openURL(androidStoreURL);
           await SystemNavigator.pop();
         }, popOnPress: false, disableBackKey: true, willShowRepetition: true);
@@ -92,7 +92,7 @@ class UIAppConfig {
             title: "Please update".localize(),
             text: "App update required. Get the latest version from the store."
                 .localize(),
-            submitText: "Open".localize(), submitAction: () async {
+            submitText: "Open".localize(), onSubmit: () async {
           openURL(iosStoreURL);
           await SystemNavigator.pop();
         }, popOnPress: false, disableBackKey: true, willShowRepetition: true);

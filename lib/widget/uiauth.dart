@@ -87,7 +87,7 @@ class UIAuth extends StatelessWidget {
                 if (provider.id == AnonymouslyAuth.options.id) {
                   UIDialog.show(context,
                       title: dialogTitleWhenAnonymousSignIn,
-                      text: dialogTextWhenAnonymousSignIn, submitAction: () {
+                      text: dialogTextWhenAnonymousSignIn, onSubmit: () {
                     if (actionAfterSignIn != null) actionAfterSignIn();
                   });
                 } else {

@@ -221,11 +221,7 @@ class FirestoreAuth extends Auth {
     if (isEmpty(protocol)) protocol = "firestore";
     String path = Texts.format(_systemPath, [protocol]);
     FirestoreAuth unit = PathMap.get<FirestoreAuth>(path);
-    if (unit == null) {
-      unit = FirestoreAuth._(path);
-    } else {
-      unit.init();
-    }
+    if (unit == null) unit = FirestoreAuth._(path);
     assert(!(isEmpty(unit.uid) || unit._link == null));
     if (isEmpty(unit.uid) || unit._link == null) {
       Log.error("Not logged in yet. Please wait until login is successful.");
