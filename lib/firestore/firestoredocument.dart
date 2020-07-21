@@ -288,7 +288,7 @@ class FirestoreDocument extends TaskDocument<DataField>
   }
 
   /// Update document data.
-  Future<T> reload<T extends IFirestoreChangeListener>() {
+  Future<T> reload<T extends IDataDocument>() {
     this.init();
     this._constructListener();
     return this.future;

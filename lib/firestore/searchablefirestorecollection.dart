@@ -219,14 +219,17 @@ class SearchableFirestoreCollection extends TaskCollection<FirestoreDocument>
   }
 
   /// Update document data.
-  Future<T> reload<T extends IFirestoreChangeListener>() {
+  Future<T> reload<T extends IDataCollection>() {
     this.init();
     this._constructListener();
     return this.future;
   }
 
   /// Read the following data.
-  Future<T> next<T extends IFirestoreChangeListener>() {
+  ///
+  /// If you want to check whether the next data can be obtained,
+  /// execute [canNext()].
+  Future<T> next<T extends IDataCollection>() {
     if (!this.isDone) {
       Log.error("Loading is not finished yet.");
       return this.future;
@@ -234,6 +237,14 @@ class SearchableFirestoreCollection extends TaskCollection<FirestoreDocument>
     this.init();
     this._fatchNext();
     return this.future;
+  }
+
+  /// True if the next data is available.
+  ///
+  /// The next data is acquired by [next()].
+  bool canNext() {
+    return this._listener.length > 0 &&
+        this._listener.last.snapshot.documents.length < this.limit;
   }
 
   void _constructListener() async {
