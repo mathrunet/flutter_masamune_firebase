@@ -244,7 +244,8 @@ class SearchableFirestoreCollection extends TaskCollection<FirestoreDocument>
   /// The next data is acquired by [next()].
   bool canNext() {
     return this._listener.length > 0 &&
-        this._listener.last.snapshot.documents.length < this.limit;
+        this._listener.last?.snapshot?.documents != null &&
+        this._listener.last.snapshot.documents.length >= this.limit;
   }
 
   void _constructListener() async {

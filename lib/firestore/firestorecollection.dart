@@ -200,7 +200,8 @@ class FirestoreCollection extends TaskCollection<FirestoreDocument>
   /// The next data is acquired by [next()].
   bool canNext() {
     return this._listener.length > 0 &&
-        this._listener.last.snapshot.documents.length < this.query.limit;
+        this._listener.last?.snapshot?.documents != null &&
+        this._listener.last.snapshot.documents.length >= this.query.limit;
   }
 
   void _constructListener() async {
@@ -451,20 +452,20 @@ class FirestoreCollection extends TaskCollection<FirestoreDocument>
         if (this.query.value != null)
           fquery =
               fquery.where(this.query.key, arrayContains: this.query.value);
-        fquery = this._buildLimitInternal(fquery);
+        fquery = this._buildOrderInternal(fquery);
         break;
       case FirestoreQueryType.arrayContainsAny:
         if (this.query.contains != null && this.query.contains.length > 0) {
           fquery = fquery.where(this.query.key,
               arrayContainsAny: this.query.contains);
         }
-        fquery = this._buildLimitInternal(fquery);
+        fquery = this._buildOrderInternal(fquery);
         break;
       case FirestoreQueryType.inArray:
         if (this.query.contains != null && this.query.contains.length > 0) {
           fquery = fquery.where(this.query.key, whereIn: this.query.contains);
         }
-        fquery = this._buildLimitInternal(fquery);
+        fquery = this._buildOrderInternal(fquery);
         break;
       default:
         break;
