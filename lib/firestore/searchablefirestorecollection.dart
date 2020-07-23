@@ -394,6 +394,7 @@ class SearchableFirestoreCollection extends TaskCollection<FirestoreDocument>
     if (this.isUpdating) return;
     this.init();
     if (data != null) {
+      listener.data = data;
       List<FirestoreDocument> addData = ListPool.get();
       data.forEach((key, value) {
         if (isEmpty(key) || value == null) return;
@@ -411,14 +412,12 @@ class SearchableFirestoreCollection extends TaskCollection<FirestoreDocument>
       for (int i = this.data.length - 1; i >= 0; i--) {
         FirestoreDocument doc = this.data[i];
         if (doc == null) continue;
-        if (!data.containsKey(doc.id) &&
-            !this
-                ._listener
-                .any((element) => element?.data?.containsKey(doc.id) ?? false))
+        if (!this
+            ._listener
+            .any((element) => element?.data?.containsKey(doc.id) ?? false))
           this.remove(doc);
       }
       Log.ast("Updated data: %s (%s)", [this.path, this.runtimeType]);
-      listener.data = data;
     }
     this.sort();
     this.done();
