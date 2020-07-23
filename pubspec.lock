@@ -253,14 +253,14 @@ packages:
       name: masamune_core
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.2.14+4"
+    version: "0.3.0"
   masamune_flutter:
     dependency: "direct main"
     description:
       name: masamune_flutter
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.2.18+9"
+    version: "0.3.0+2"
   masamune_localize:
     dependency: "direct main"
     description:
