@@ -223,7 +223,7 @@ class FirestoreCollection extends TaskCollection<FirestoreDocument>
         DocumentSnapshot prev = listener.last;
         for (DocumentSnapshot doc in snapshot.documents) {
           if (doc == null || !doc.exists) continue;
-          data[doc.documentID] = doc.data;
+          data[doc.documentID] = doc.data;          
           if (doc.data.containsKey(Const.time)) {
             if (updatedTime == null ||
                 updatedTime.compareTo(doc.data[Const.time]) < 0)
