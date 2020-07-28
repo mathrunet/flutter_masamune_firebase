@@ -1,3 +1,8 @@
+## [0.3.0] - Update README (2020.07.28)
+
+* Supports masamune_core 0.3.0
+* Added folder configuration utility.
+
 ## [0.2.10] - Update README (2020.07.19)
 
 * Supports sorting by FirestoreCollection by compound index.

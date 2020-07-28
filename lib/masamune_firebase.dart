@@ -58,5 +58,6 @@ part 'widget/uiloginform.dart';
 part 'widget/uiauth.dart';
 part 'widget/uiauthdialog.dart';
 part 'widget/uiappconfig.dart';
+part 'widget/logoutbutton.dart';
 
 part 'firestore/firestorefolderstructureutility.dart';
