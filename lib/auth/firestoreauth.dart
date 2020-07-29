@@ -240,6 +240,8 @@ class FirestoreAuth extends Auth {
         return;
       }
       await this._auth.signOut().timeout(timeout);
+      this.init();
+      this._link = null;
       this.done();
     } on TimeoutException catch (e) {
       this.timeout(e.toString());
