@@ -100,6 +100,14 @@ class FirestoreQuery {
     this.contains.addAll(values);
   }
 
+  /// Set up a Firestore query.
+  ///
+  /// It is possible to query the collection by setting this in FirestoreCollection.
+  FirestoreQuery.empty() {
+    this._type = FirestoreQueryType.empty;
+    this._key = null;
+  }
+
   /// Set the query type.
   FirestoreQueryType get type => this._type;
   FirestoreQueryType _type = FirestoreQueryType.none;

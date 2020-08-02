@@ -24,5 +24,8 @@ enum FirestoreQueryType {
   arrayContainsAny,
 
   /// All elements that match what is given in the list.
-  inArray
+  inArray,
+
+  /// Empty query. The element is always empty.
+  empty,
 }

@@ -213,6 +213,12 @@ class FirestoreCollection extends TaskCollection<FirestoreDocument>
       if (this._app == null) this.__app = await Firebase.initialize();
       if (this._auth == null)
         this.__auth = await FirestoreAuth.signIn(protocol: this.protocol);
+      if (this.query != null && this.query.type == FirestoreQueryType.empty) {
+        this.clear();
+        this.notifyUpdate();
+        this.done();
+        return;
+      }
       _FirestoreCollectionListener listener = _FirestoreCollectionListener();
       listener.reference =
           this._buildQueryInternal(this._app._db.collection(this.rawPath.path));
