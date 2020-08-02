@@ -25,7 +25,10 @@ class FirestoreQuery {
   FirestoreQuery.equalTo(String key, dynamic value) {
     this._type = FirestoreQueryType.equalTo;
     this._key = key;
-    this.value = value;
+    if (value is String)
+      this.value = value.applyTags();
+    else
+      this.value = value;
   }
 
   /// Set up a Firestore query.
@@ -73,7 +76,10 @@ class FirestoreQuery {
   FirestoreQuery.contains(String key, dynamic value) {
     this._type = FirestoreQueryType.arrayContains;
     this._key = key;
-    this.value = value;
+    if (value is String)
+      this.value = value.applyTags();
+    else
+      this.value = value;
   }
 
   /// Set up a Firestore query.
@@ -85,7 +91,10 @@ class FirestoreQuery {
   FirestoreQuery.containsAny(String key, Iterable values) {
     this._type = FirestoreQueryType.arrayContainsAny;
     this._key = key;
-    this.contains.addAll(values);
+    this.contains.addAll(values?.map((e) {
+      if (e is String) return e.applyTags();
+      return e;
+    }));
   }
 
   /// Set up a Firestore query.
@@ -97,7 +106,10 @@ class FirestoreQuery {
   FirestoreQuery.inArray(String key, Iterable values) {
     this._type = FirestoreQueryType.inArray;
     this._key = key;
-    this.contains.addAll(values);
+    this.contains.addAll(values?.map((e) {
+      if (e is String) return e.applyTags();
+      return e;
+    }));
   }
 
   /// Set up a Firestore query.
