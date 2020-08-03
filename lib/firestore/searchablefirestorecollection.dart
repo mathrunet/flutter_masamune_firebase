@@ -158,14 +158,25 @@ class SearchableFirestoreCollection extends TaskCollection<FirestoreDocument>
     SearchableFirestoreCollection collection =
         PathMap.get<SearchableFirestoreCollection>(path);
     if (collection != null) {
-      if (searchText != null) collection._searchText = searchText;
-      if (queryKey != null) collection._queryKey = queryKey;
-      if (limit > 0) collection._limit = limit;
-      if (orderBy != OrderBy.none) collection.orderBy = orderBy;
-      if (thenBy != OrderBy.none) collection.thenBy = thenBy;
-      if (isNotEmpty(orderByKey)) collection.orderByKey = orderByKey;
-      if (isNotEmpty(thenByKey)) collection.thenByKey = thenByKey;
-      return collection.reload();
+      bool reload = false;
+      if (searchText != null && searchText != collection.searchText) {
+        reload = true;
+        collection._searchText = searchText;
+      }
+      if (queryKey != null && queryKey != collection.queryKey) {
+        reload = true;
+        collection._queryKey = queryKey;
+      }
+      if (limit != null && limit > 0 && limit != collection.limit) {
+        reload = true;
+        collection._limit = limit;
+      }
+      if (collection.isChanged(
+          orderBy: orderBy,
+          thenBy: thenBy,
+          orderByKey: orderByKey,
+          thenByKey: thenByKey)) reload = true;
+      return reload ? collection.reload() : collection.future;
     }
     collection = SearchableFirestoreCollection._(
         path: path,

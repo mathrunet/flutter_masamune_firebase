@@ -91,7 +91,7 @@ class AppConfigDocument extends FirestoreDocument {
     }
     AppConfigDocument document = PathMap.get<AppConfigDocument>(path);
     if (document != null) {
-      return document.reload();
+      return document.future;
     }
     document = AppConfigDocument._(path: path);
     document._constructListener();

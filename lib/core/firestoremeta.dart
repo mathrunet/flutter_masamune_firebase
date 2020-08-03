@@ -11,6 +11,9 @@ class FirestoreMeta {
   /// Key for language.
   static const String localeKey = "@locale";
 
+  /// Key for ignore update.
+  static const String ignoreKey = "@ignore";
+
   /// Describes the metadata and processing at the time of getting.
   static final Map<String, FirestoreMetaFilter> filter = {
     "@translate": (key, value, data) {

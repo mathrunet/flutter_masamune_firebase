@@ -121,7 +121,7 @@ class FirestoreDocument extends TaskDocument<DataField>
     }
     FirestoreDocument document = PathMap.get<FirestoreDocument>(path);
     if (document != null) {
-      return document.reload();
+      return document.future;
     }
     document = FirestoreDocument._(path: path);
     document._constructListener();
@@ -368,7 +368,11 @@ class FirestoreDocument extends TaskDocument<DataField>
     this[Const.uid] = this.id;
     this[Const.time] = Firebase.serverTimestamp;
     this[FirestoreMeta.localeKey] = Localize.language;
-    this._app._updateStack.addLast(this);
+    this
+        ._app
+        ._updateStack
+        .removeWhere((element) => element == this || element.path == this.path);
+    this._app._updateStack.add(this);
     return this.future;
   }
 
@@ -379,17 +383,34 @@ class FirestoreDocument extends TaskDocument<DataField>
         this.done();
         return;
       }
-      if (this._isDelete) {
+      if (this._isDelete && this.isDisposed) {
         await transaction.delete(this._reference);
-        this.done();
-        this.dispose();
       } else {
         Map<String, dynamic> dic = MapPool.get();
-        this.data.forEach((key, value) {
-          if (isEmpty(key)) return;
-          dic[key] = value?.rawData;
-        });
-        await transaction.set(this._reference, dic);
+        List<String> ignore = this.data[FirestoreMeta.ignoreKey]?.getList(null);
+        DocumentSnapshot snapshot = await this._reference.get();
+        if (snapshot == null || !snapshot.exists) {
+          this.data.forEach((key, value) {
+            if (isEmpty(key)) return;
+            if (key.contains(Const.atmark)) return;
+            if (ignore != null && ignore.contains(key)) return;
+            dic[key] = value?.rawData;
+          });
+          await transaction.set(this._reference, dic);
+        } else {
+          this.data.forEach((key, value) {
+            if (isEmpty(key)) return;
+            if (key.contains(Const.atmark) ||
+                (ignore != null && ignore.contains(key))) {
+              if (snapshot.data.containsKey(key)) {
+                dic[key] = snapshot.data[key];
+              }
+              return;
+            }
+            dic[key] = value?.rawData;
+          });
+          await transaction.set(this._reference, dic);
+        }
         dic.release();
         this.done();
       }
@@ -415,10 +436,10 @@ class FirestoreDocument extends TaskDocument<DataField>
           "Please execute after completing initialization and authentication.");
       return this.future;
     }
-    this.init();
+    this.dispose();
     this._isDelete = true;
     this._isUpdating = true;
-    this._app._updateStack.addLast(this);
+    this._app._updateStack.add(this);
     return this.future;
   }
 

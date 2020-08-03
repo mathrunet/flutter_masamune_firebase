@@ -34,7 +34,7 @@ class Firebase extends TaskUnit {
   FirebaseOptions get options => this._options;
   FirebaseOptions _options;
   Firestore _db;
-  Queue<FirestoreDocument> _updateStack = QueuePool.get();
+  List<FirestoreDocument> _updateStack = ListPool.get();
   void _startUpdate() {
     if (this._timer != null) return;
     this._timer = Timer.periodic(Config.periodicExecutionTime, (timer) async {
@@ -42,13 +42,16 @@ class Firebase extends TaskUnit {
       await this._db.runTransaction((transaction) async {
         FirestoreDocument doc;
         List<FirestoreDocument> applied = ListPool.get();
+        List<Future> tasks = ListPool.get();
         while (this._updateStack.length > 0 &&
             (doc = this._updateStack.removeLast()) != null) {
           if (applied.contains(doc)) continue;
-          doc._saveInternal(transaction);
+          tasks.add(doc._saveInternal(transaction));
           applied.add(doc);
         }
+        if (tasks.length > 0) await Future.wait(tasks);
         applied.release();
+        tasks.release();
       });
     });
   }
@@ -127,12 +130,14 @@ class Firebase extends TaskUnit {
           protocol == Protocol.system ||
           protocol == "firestore") {
         this._app = FirebaseApp.instance;
-        this._db = Firestore(app: this._app);
+        this._db = Firestore(app: this._app)
+          ..settings(persistenceEnabled: true);
       } else {
         this._app =
             await FirebaseApp.configure(name: protocol, options: options)
                 .timeout(timeout);
-        this._db = Firestore(app: this._app);
+        this._db = Firestore(app: this._app)
+          ..settings(persistenceEnabled: true);
       }
       if (this._app == null || this._db == null) {
         this.error("FirebaseApp is not found.");

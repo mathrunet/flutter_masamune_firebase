@@ -92,9 +92,9 @@ class FirestoreQuery {
     this._type = FirestoreQueryType.arrayContainsAny;
     this._key = key;
     this.contains.addAll(values?.map((e) {
-      if (e is String) return e.applyTags();
-      return e;
-    }));
+          if (e is String) return e.applyTags();
+          return e;
+        })?.distinct());
   }
 
   /// Set up a Firestore query.
@@ -107,9 +107,9 @@ class FirestoreQuery {
     this._type = FirestoreQueryType.inArray;
     this._key = key;
     this.contains.addAll(values?.map((e) {
-      if (e is String) return e.applyTags();
-      return e;
-    }));
+          if (e is String) return e.applyTags();
+          return e;
+        })?.distinct());
   }
 
   /// Set up a Firestore query.
@@ -152,6 +152,21 @@ class FirestoreQuery {
     this._orderBy = OrderBy.desc;
     this._orderByKey = key;
     return this;
+  }
+
+  /// True if the values are equal.
+  ///
+  /// [query]: Other queries.
+  bool equals(FirestoreQuery query) {
+    if (query == null) return false;
+    return this._key == query._key &&
+        this._limit == query._limit &&
+        this._orderBy == query._orderBy &&
+        this._orderByKey == query._orderByKey &&
+        this._range.equals(query._range) &&
+        this._type == query._type &&
+        this._value == query._value &&
+        this._contains.equals(query._contains);
   }
 
   /// Order by.
@@ -247,5 +262,13 @@ class Range {
   Range(double min, double max) {
     this.min = min;
     this.max = max;
+  }
+
+  /// True if the values are equal.
+  ///
+  /// [query]: Other value.
+  bool equals(Range other) {
+    if (other == null) return false;
+    return this.min == other.min && this.max == other.max;
   }
 }

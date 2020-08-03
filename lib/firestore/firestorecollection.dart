@@ -132,12 +132,17 @@ class FirestoreCollection extends TaskCollection<FirestoreDocument>
     }
     FirestoreCollection collection = PathMap.get<FirestoreCollection>(path);
     if (collection != null) {
-      if (query != null) collection.query = query;
-      if (orderBy != OrderBy.none) collection.orderBy = orderBy;
-      if (thenBy != OrderBy.none) collection.thenBy = thenBy;
-      if (isNotEmpty(orderByKey)) collection.orderByKey = orderByKey;
-      if (isNotEmpty(thenByKey)) collection.thenByKey = thenByKey;
-      return collection.reload();
+      bool reload = false;
+      if (query != null && !query.equals(collection.query)) {
+        reload = true;
+        collection.query = query;
+      }
+      if (collection.isChanged(
+          orderBy: orderBy,
+          thenBy: thenBy,
+          orderByKey: orderByKey,
+          thenByKey: thenByKey)) reload = true;
+      return reload ? collection.reload() : collection.future;
     }
     collection = FirestoreCollection._(
         path: path,
