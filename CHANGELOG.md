@@ -1,3 +1,7 @@
+## [0.3.1] - Update README (2020.08.04)
+
+* Separated Firebase messaging.
+
 ## [0.3.0] - Update README (2020.07.28)
 
 * Supports masamune_core 0.3.0
