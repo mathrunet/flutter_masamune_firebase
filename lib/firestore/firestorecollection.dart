@@ -177,6 +177,7 @@ class FirestoreCollection extends TaskCollection<FirestoreDocument>
     this.thenBy = thenBy;
     this.orderByKey = orderByKey;
     this.thenByKey = thenByKey;
+    this._app._registerParent(this);
   }
 
   /// Update document data.
@@ -585,9 +586,119 @@ class FirestoreCollection extends TaskCollection<FirestoreDocument>
   }
 
   void _disposeInternal() {
+    this._app._unregisterParent(this);
     if (this._listener.length <= 0) return;
     this._listener.forEach((e) => e?.listener?.cancel());
     this._listener.clear();
+  }
+
+  void _addChildInternal(FirestoreDocument document) {
+    if (this.data.containsKey(document.id)) return;
+    if (!this._queryInternal(document)) return;
+    this.data[document.id] = document;
+    this.notifyUpdate();
+  }
+
+  bool _queryInternal(FirestoreDocument document) {
+    if (this.query == null || isEmpty(this.query.key)) return true;
+    dynamic o;
+    if (this.query.key.contains(Const.dot)) {
+      dynamic tmp = document[this.query.key];
+      o = this.query.key.split(Const.dot).fold(null, (previousValue, key) {
+        if (tmp == null) {
+          return null;
+        } else if (tmp is Map) {
+          tmp = tmp[key];
+        } else {
+          dynamic res = tmp;
+          tmp = null;
+          return res;
+        }
+      });
+    } else {
+      o = document[this.query.key];
+    }
+    switch (this.query.type) {
+      case FirestoreQueryType.equalTo:
+        if (this.query.value != null) {
+          if (o == null) return false;
+          if (this.query.value.runtimeType != o.runtimeType) return false;
+          return o == this.query.value;
+        }
+        break;
+      case FirestoreQueryType.higherThan:
+        if (this.query.value != null) {
+          if (o == null) return false;
+          if (this.query.value.runtimeType != o.runtimeType) return false;
+          if (o == this.query.value) return true;
+          if (o is num && this.query.value is num)
+            return o.compareTo(this.query.value) > 0;
+          if (o is String && this.query.value is String)
+            return o.compareTo(this.query.value) > 0;
+          return false;
+        }
+        break;
+      case FirestoreQueryType.lowerThan:
+        if (this.query.value != null) {
+          if (o == null) return false;
+          if (this.query.value.runtimeType != o.runtimeType) return false;
+          if (o == this.query.value) return true;
+          if (o is num && this.query.value is num)
+            return o.compareTo(this.query.value) < 0;
+          if (o is String && this.query.value is String)
+            return o.compareTo(this.query.value) < 0;
+          return false;
+        }
+        break;
+      case FirestoreQueryType.range:
+        if (this.query.value is Range) {
+          if (o == null) return false;
+          if (o is int) {
+            if (this.query.value.min <= o || o <= this.query.value.max)
+              return true;
+          } else if (o is double) {
+            if (this.query.value.min <= o || o <= this.query.value.max)
+              return true;
+          }
+          return false;
+        }
+        break;
+      case FirestoreQueryType.arrayContains:
+        if (this.query.value != null) {
+          if (o == null) return false;
+          if (o is List) {
+            return o.contains(this.query.value);
+          }
+          return false;
+        }
+        break;
+      case FirestoreQueryType.arrayContainsAny:
+        if (this.query.contains != null && this.query.contains.length > 0) {
+          if (o == null) return false;
+          if (o is List) {
+            return o.any((element) => this.query.contains.contains(element));
+          }
+          return false;
+        }
+        break;
+      case FirestoreQueryType.inArray:
+        if (this.query.contains != null && this.query.contains.length > 0) {
+          if (o == null) return false;
+          return this.query.contains.contains(o);
+        }
+        return false;
+        break;
+      default:
+        break;
+    }
+    return true;
+  }
+
+  void _removeInternal(FirestoreDocument document) {
+    if (!document.isDisposable) return;
+    if (!this.data.containsKey(document.id)) return;
+    this.data.remove(document.id);
+    this.notifyUpdate();
   }
 
   /// Callback event when application quit.

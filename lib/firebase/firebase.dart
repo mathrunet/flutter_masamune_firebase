@@ -34,6 +34,7 @@ class Firebase extends TaskUnit {
   FirebaseOptions get options => this._options;
   FirebaseOptions _options;
   Firestore _db;
+  Map<String, Set<FirestoreCollection>> _parentList = MapPool.get();
   List<FirestoreDocument> _updateStack = ListPool.get();
   void _startUpdate() {
     if (this._timer != null) return;
@@ -54,6 +55,36 @@ class Firebase extends TaskUnit {
         tasks.release();
       });
     });
+  }
+
+  void _registerParent(FirestoreCollection collection) {
+    String path = Paths.removeQuery(collection.path);
+    if (_parentList.containsKey(path)) {
+      _parentList[path].add(collection);
+    } else {
+      _parentList[path] = {collection};
+    }
+  }
+
+  void _addChild(FirestoreDocument document) {
+    String path = Paths.removeQuery(Paths.parent(document.path));
+    if (!_parentList.containsKey(path)) return;
+    _parentList[path].forEach((element) => element._addChildInternal(document) );
+  }
+
+  void _removeChild(FirestoreDocument document) {
+    String path = Paths.removeQuery(Paths.parent(document.path));
+    if (!_parentList.containsKey(path)) return;
+    _parentList[path].forEach((element) {
+      if (!element.containsPath(document.path)) return;
+      element._removeInternal(document);
+    });
+  }
+
+  void _unregisterParent(FirestoreCollection collection) {
+    String path = Paths.removeQuery(collection.path);
+    if (!_parentList.containsKey(path)) return;
+    _parentList[path].remove(collection);
   }
 
   /// Search for an instance of Firebase from [protocol].

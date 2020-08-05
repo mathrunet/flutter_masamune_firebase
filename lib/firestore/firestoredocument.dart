@@ -59,6 +59,7 @@ class FirestoreDocument extends TaskDocument<DataField>
 
   DocumentReference __reference;
   StreamSubscription<DocumentSnapshot> _listener;
+  Map<String, StreamSubscription> _subListener = MapPool.get();
 
   /// Manage Firestore documents.
   ///
@@ -73,7 +74,8 @@ class FirestoreDocument extends TaskDocument<DataField>
   ///
   /// [path]: Document path.
   factory FirestoreDocument(String path) {
-    path = path?.replaceAll("https", "firestore")?.applyTags();
+    path =
+        Paths.removeQuery(path?.replaceAll("https", "firestore")?.applyTags());
     assert(isNotEmpty(path));
     if (isEmpty(path)) {
       Log.error("Path is invalid.");
@@ -107,7 +109,8 @@ class FirestoreDocument extends TaskDocument<DataField>
   ///
   /// [path]: Document path.
   static Future<FirestoreDocument> listen(String path) {
-    path = path?.replaceAll("https", "firestore")?.applyTags();
+    path =
+        Paths.removeQuery(path?.replaceAll("https", "firestore")?.applyTags());
     assert(isNotEmpty(path));
     if (isEmpty(path)) {
       Log.error("Path is invalid.");
@@ -145,7 +148,8 @@ class FirestoreDocument extends TaskDocument<DataField>
   /// [data]: Data set locally.
   static Future<FirestoreDocument> createAsFuture(String path,
       [Map<String, dynamic> data]) {
-    path = path?.replaceAll("https", "firestore")?.applyTags();
+    path =
+        Paths.removeQuery(path?.replaceAll("https", "firestore")?.applyTags());
     assert(isNotEmpty(path));
     if (isEmpty(path)) {
       Log.error("Path is invalid.");
@@ -159,11 +163,11 @@ class FirestoreDocument extends TaskDocument<DataField>
     }
     FirestoreDocument document = PathMap.get<FirestoreDocument>(path);
     if (document != null) {
-      if (data != null) document.set(_convertData(path, data));
+      if (data != null) document.set(document._convertData(path, data));
       return document.asFuture();
     }
     document = FirestoreDocument._(path: path, isTemporary: true);
-    if (data != null) document.set(_convertData(path, data));
+    if (data != null) document.set(document._convertData(path, data));
     return document.asFuture();
   }
 
@@ -183,7 +187,8 @@ class FirestoreDocument extends TaskDocument<DataField>
   /// [path]: Document path
   /// [data]: Data set locally
   static FirestoreDocument create(String path, [Map<String, dynamic> data]) {
-    path = path?.replaceAll("https", "firestore")?.applyTags();
+    path =
+        Paths.removeQuery(path?.replaceAll("https", "firestore")?.applyTags());
     assert(isNotEmpty(path));
     if (isEmpty(path)) {
       Log.error("Path is invalid.");
@@ -197,11 +202,11 @@ class FirestoreDocument extends TaskDocument<DataField>
     }
     FirestoreDocument document = PathMap.get<FirestoreDocument>(path);
     if (document != null) {
-      if (data != null) document.set(_convertData(path, data));
+      if (data != null) document.set(document._convertData(path, data));
       return document;
     }
     document = FirestoreDocument._(path: path, isTemporary: true);
-    if (data != null) document.set(_convertData(path, data));
+    if (data != null) document.set(document._convertData(path, data));
     return document;
   }
 
@@ -221,11 +226,11 @@ class FirestoreDocument extends TaskDocument<DataField>
     }
     FirestoreDocument document = PathMap.get<FirestoreDocument>(path);
     if (document != null) {
-      if (data != null) document.set(_convertData(path, data));
+      if (data != null) document.set(document._convertData(path, data));
       return document;
     }
     document = FirestoreDocument._(path: path);
-    if (data != null) document.set(_convertData(path, data));
+    if (data != null) document.set(document._convertData(path, data));
     return document;
   }
 
@@ -244,7 +249,8 @@ class FirestoreDocument extends TaskDocument<DataField>
   ///
   /// [path]: Document path to delete.
   static Future deleteAt(String path) async {
-    path = path?.replaceAll("https", "firestore")?.applyTags();
+    path =
+        Paths.removeQuery(path?.replaceAll("https", "firestore")?.applyTags());
     assert(isNotEmpty(path));
     if (isEmpty(path)) {
       Log.error("Path is invalid.");
@@ -273,14 +279,27 @@ class FirestoreDocument extends TaskDocument<DataField>
             isTemporary: isTemporary,
             group: group,
             order: order);
-  static Iterable<DataField> _convertData(
-      String path, Map<String, dynamic> data) {
+
+  /// Set the data.
+  ///
+  /// Protected data.
+  ///
+  /// [children]: List of data.
+  @override
+  @protected
+  void set(Iterable<DataField> children) {
+    super.set(children);
+    if (this.isTemporary) return;
+    this._app._addChild(this);
+  }
+
+  Iterable<DataField> _convertData(String path, Map<String, dynamic> data) {
     List<DataField> list = ListPool.get();
     data?.forEach((key, value) {
       if (isEmpty(key) || value == null) return;
       for (MapEntry<String, FirestoreMetaFilter> tmp
           in FirestoreMeta.filter.entries) {
-        value = tmp.value(key + tmp.key, value, data);
+        value = tmp.value(key, value, data, this);
       }
       list.add(DataField(Paths.child(path, key), value));
     });
@@ -304,14 +323,14 @@ class FirestoreDocument extends TaskDocument<DataField>
       if (this._isRequireAuth && this._auth == null)
         this.__auth = await FirestoreAuth.signIn(protocol: this.protocol);
       this.__reference = this._app._db.document(this.rawPath.path);
-      this._listener = this._reference.snapshots().listen(
-          (snapshot) => this._done(
-              snapshot.exists ? snapshot.data : MapPool.get(),
-              (snapshot.data?.containsKey(Const.time) ?? false)
-                  ? (snapshot.data[Const.time] as Timestamp)
-                      .millisecondsSinceEpoch
-                  : DateTime.now().frameMillisecondsSinceEpoch),
-          onError: (error) {
+      this._listener = this._reference.snapshots().listen((snapshot) async {
+        return this._done(
+            snapshot.exists ? snapshot.data : MapPool.get(),
+            (snapshot.data?.containsKey(Const.time) ?? false)
+                ? (snapshot.data[Const.time] as Timestamp)
+                    .millisecondsSinceEpoch
+                : DateTime.now().frameMillisecondsSinceEpoch);
+      }, onError: (error) {
         this.error(error);
       }, cancelOnError: true);
     } catch (e) {
@@ -335,13 +354,15 @@ class FirestoreDocument extends TaskDocument<DataField>
       if (isEmpty(key) || value == null) return;
       for (MapEntry<String, FirestoreMetaFilter> tmp
           in FirestoreMeta.filter.entries) {
-        value = tmp.value(key + tmp.key, value, data);
+        value = tmp.value(key, value, data, this);
       }
       this[key] = value;
     });
     List<String> list = List.from(this.data.keys);
     for (String tmp in list) {
-      if (!data.containsKey(tmp)) this.remove(tmp);
+      if (data.containsKey(tmp)) continue;
+      if (this._subListener.containsKey(tmp)) continue;
+      this.remove(tmp);
     }
     list.release();
     Log.ast("Updated data: %s (%s)", [this.path, this.runtimeType]);
@@ -373,6 +394,7 @@ class FirestoreDocument extends TaskDocument<DataField>
         ._updateStack
         .removeWhere((element) => element == this || element.path == this.path);
     this._app._updateStack.add(this);
+    if (!this.isTemporary) this._app._addChild(this);
     return this.future;
   }
 
@@ -436,6 +458,7 @@ class FirestoreDocument extends TaskDocument<DataField>
           "Please execute after completing initialization and authentication.");
       return this.future;
     }
+    this._isDisposable = true;
     this.dispose();
     this._isDelete = true;
     this._isUpdating = true;
@@ -444,6 +467,11 @@ class FirestoreDocument extends TaskDocument<DataField>
   }
 
   bool _isDelete = false;
+
+  /// True if the object can be destroyed.
+  @override
+  bool get isDisposable => this._isDisposable || this.isTemporary;
+  bool _isDisposable = false;
 
   /// True if communicating with the server for saving or deleting.
   bool get isUpdating => this._isUpdating;
@@ -468,9 +496,12 @@ class FirestoreDocument extends TaskDocument<DataField>
   void _disposeInternal() {
     this.__reference = null;
     this._isUpdating = false;
-    if (this._listener == null) return;
-    this._listener.cancel();
-    this._listener = null;
+    this._app._removeChild(this);
+    if (this._listener != null) {
+      this._listener.cancel();
+      this._listener = null;
+    }
+    this._subListener.forEach((key, value) => value?.cancel());
   }
 
   /// Create a new field.
