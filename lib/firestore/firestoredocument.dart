@@ -324,14 +324,21 @@ class FirestoreDocument extends TaskDocument<DataField>
         this.__auth = await FirestoreAuth.signIn(protocol: this.protocol);
       this.__reference = this._app._db.document(this.rawPath.path);
       this._listener = this._reference.snapshots().listen((snapshot) async {
-        return this._done(
-            snapshot.exists ? snapshot.data : MapPool.get(),
-            (snapshot.data?.containsKey(Const.time) ?? false)
-                ? (snapshot.data[Const.time] as Timestamp)
-                    .millisecondsSinceEpoch
-                : DateTime.now().frameMillisecondsSinceEpoch);
+        if (snapshot == null ||
+            !snapshot.exists ||
+            snapshot.data == null ||
+            snapshot.data.length <= 0) {
+          this.dispose();
+        } else {
+          this._done(
+              snapshot.exists ? snapshot.data : MapPool.get(),
+              (snapshot.data?.containsKey(Const.time) ?? false)
+                  ? (snapshot.data[Const.time] as Timestamp)
+                      .millisecondsSinceEpoch
+                  : DateTime.now().frameMillisecondsSinceEpoch);
+        }
       }, onError: (error) {
-        this.error(error);
+        this.reload();
       }, cancelOnError: true);
     } catch (e) {
       this.error(e.toString());

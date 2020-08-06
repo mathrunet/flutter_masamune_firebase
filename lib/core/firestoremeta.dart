@@ -38,11 +38,13 @@ class FirestoreMeta {
             .collection(tmp)
             .snapshots()
             .listen((collection) {
-          document[tmp] = collection?.documents?.fold(
+          num count = collection?.documents?.fold(
                   0,
                   (previousValue, element) =>
                       previousValue + (element?.data["value"] ?? 0)) ??
               0;
+          if (document.containsKey(tmp) && document[tmp] != count) return;
+          document[tmp] = count;
         });
       }
       return data.containsKey(tmp) ? data[tmp] : value;
