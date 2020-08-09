@@ -233,6 +233,11 @@ class FirestoreQuery {
   /// Array used in [arrayContainsAny] or [inArray].
   List get contains => this._contains;
   List _contains = ListPool.get();
+
+  /// True if the Firestore query limit is caught.
+  bool get isQueryLimitation =>
+      this.type == FirestoreQueryType.inArray ||
+      this.type == FirestoreQueryType.arrayContainsAny;
 }
 
 /// Range class.

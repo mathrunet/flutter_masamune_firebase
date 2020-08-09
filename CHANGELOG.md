@@ -1,3 +1,8 @@
+## [0.4.0] - Update README (2020.08.07)
+
+* Changed the internal specifications.
+* Changed to add/remove elements offline and synchronize online.
+
 ## [0.3.1] - Update README (2020.08.04)
 
 * Separated Firebase messaging.

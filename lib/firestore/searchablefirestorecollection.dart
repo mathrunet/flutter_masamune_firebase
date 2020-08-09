@@ -19,7 +19,8 @@ class SearchableFirestoreCollection extends TaskCollection<FirestoreDocument>
         ITask,
         IDataCollection<FirestoreDocument>,
         IFirestoreChangeListener,
-        ISearchable {
+        ISearchable,
+        IFirestoreCollectionListener {
   /// Maximum search results.
   int get limit => this._limit;
   int _limit = 500;
@@ -217,6 +218,7 @@ class SearchableFirestoreCollection extends TaskCollection<FirestoreDocument>
     this.thenBy = thenBy;
     this.orderByKey = orderByKey;
     this.thenByKey = thenByKey;
+    this._app._registerParent(this);
   }
 
   /// Search the collection with [searchText].
@@ -535,6 +537,7 @@ class SearchableFirestoreCollection extends TaskCollection<FirestoreDocument>
   }
 
   void _disposeInternal() {
+    this._app._unregisterParent(this);
     if (this._listener.length <= 0) return;
     this._listener.forEach((e) => e?.listener?.cancel());
     this._listener.clear();
@@ -544,5 +547,37 @@ class SearchableFirestoreCollection extends TaskCollection<FirestoreDocument>
   void onApplicationQuit() {
     super.onApplicationQuit();
     this._disposeInternal();
+  }
+
+  // ignore: unused_element
+  void _addChildInternal(FirestoreDocument document) {
+    if (document == null) return;
+    if (this.data.containsKey(document.id)) return;
+    if (!this._queryInternal(document)) return;
+    this.data[document.id] = document;
+    this.notifyUpdate();
+  }
+
+  bool _queryInternal(FirestoreDocument document) {
+    if (isEmpty(this.queryKey) ||
+        isEmpty(this.searchText) ||
+        this.searchText.length <= 1) {
+      return false;
+    } else {
+      final map = document.getMap(this.queryKey, null);
+      if (map == null) return false;
+      return Texts.bigram(this.searchText.toLowerCase())
+              ?.any((element) => map.containsKey(element)) ??
+          false;
+    }
+  }
+
+  // ignore: unused_element
+  void _removeChildInternal(FirestoreDocument document) {
+    if (document == null) return;
+    if (!document.isDisposable) return;
+    if (!this.data.containsKey(document.id)) return;
+    this.data.remove(document.id);
+    this.notifyUpdate();
   }
 }

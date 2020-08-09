@@ -57,7 +57,7 @@ class Firebase extends TaskUnit {
     });
   }
 
-  void _registerParent(FirestoreCollection collection) {
+  void _registerParent(IFirestoreCollectionListener collection) {
     String path = Paths.removeQuery(collection.path);
     if (_parentList.containsKey(path)) {
       _parentList[path].add(collection);
@@ -69,7 +69,7 @@ class Firebase extends TaskUnit {
   void _addChild(FirestoreDocument document) {
     String path = Paths.removeQuery(Paths.parent(document.path));
     if (!_parentList.containsKey(path)) return;
-    _parentList[path].forEach((element) => element._addChildInternal(document) );
+    _parentList[path].forEach((element) => element._addChildInternal(document));
   }
 
   void _removeChild(FirestoreDocument document) {
@@ -77,11 +77,11 @@ class Firebase extends TaskUnit {
     if (!_parentList.containsKey(path)) return;
     _parentList[path].forEach((element) {
       if (!element.containsPath(document.path)) return;
-      element._removeInternal(document);
+      element._removeChildInternal(document);
     });
   }
 
-  void _unregisterParent(FirestoreCollection collection) {
+  void _unregisterParent(IFirestoreCollectionListener collection) {
     String path = Paths.removeQuery(collection.path);
     if (!_parentList.containsKey(path)) return;
     _parentList[path].remove(collection);

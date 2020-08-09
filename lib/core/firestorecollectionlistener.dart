@@ -6,6 +6,7 @@ class _FirestoreCollectionListener {
   QuerySnapshot snapshot;
   DocumentSnapshot last;
   Map<String, Map<String, dynamic>> data;
+  int index;
   Future reset() async {
     if (this.listener != null) await this.listener.cancel();
     this.reference = null;

@@ -9,7 +9,7 @@
 library masamune.firebase;
 
 import 'dart:async';
-import 'dart:collection';
+import 'dart:math';
 import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart';
@@ -40,6 +40,7 @@ part 'core/firestoremeta.dart';
 
 part 'firebase/firebase.dart';
 
+part 'firestore/ifirestorecollectionlistener.dart';
 part 'firestore/firestoredocument.dart';
 part 'firestore/firestorecollection.dart';
 part 'firestore/searchablefirestorecollection.dart';

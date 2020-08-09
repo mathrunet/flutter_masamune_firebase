@@ -32,7 +32,7 @@ class FirestoreMeta {
     "@count": (key, value, data, document) {
       if (!key.contains("@count")) return value;
       String tmp = key.replaceAll("@count", Const.empty);
-      if (document != null) {
+      if (document != null && document is FirestoreDocument) {
         if (document._subListener.containsKey(tmp)) return value;
         document._subListener[tmp] = document._reference
             .collection(tmp)
