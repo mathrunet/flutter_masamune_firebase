@@ -168,6 +168,7 @@ class FirestoreDocument extends TaskDocument<DataField>
     }
     document = FirestoreDocument._(path: path, isTemporary: true);
     if (data != null) document.set(document._convertData(path, data));
+    document.done();
     return document.asFuture();
   }
 
@@ -207,6 +208,7 @@ class FirestoreDocument extends TaskDocument<DataField>
     }
     document = FirestoreDocument._(path: path, isTemporary: true);
     if (data != null) document.set(document._convertData(path, data));
+    document.done();
     return document;
   }
 
@@ -231,6 +233,7 @@ class FirestoreDocument extends TaskDocument<DataField>
     }
     document = FirestoreDocument._(path: path);
     if (data != null) document.set(document._convertData(path, data));
+    document.done();
     return document;
   }
 

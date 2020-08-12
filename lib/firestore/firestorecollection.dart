@@ -229,7 +229,7 @@ class FirestoreCollection extends TaskCollection<FirestoreDocument>
       for (int i = 0;
           i <
               (this.query == null || !this.query.isQueryLimitation
-                  ? 0
+                  ? 1
                   : (this.query.contains.length / 10).ceil());
           i++) {
         _FirestoreCollectionListener listener = _FirestoreCollectionListener();
@@ -293,7 +293,7 @@ class FirestoreCollection extends TaskCollection<FirestoreDocument>
       for (int i = 0;
           i <
               (this.query == null || !this.query.isQueryLimitation
-                  ? 0
+                  ? 1
                   : (this.query.contains.length / 10).ceil());
           i++) {
         _FirestoreCollectionListener listener = _FirestoreCollectionListener();
