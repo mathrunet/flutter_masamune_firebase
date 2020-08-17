@@ -331,6 +331,7 @@ class FirestoreDocument extends TaskDocument<DataField>
             !snapshot.exists ||
             snapshot.data == null ||
             snapshot.data.length <= 0) {
+          this.done();
           this.dispose();
         } else {
           this._done(
