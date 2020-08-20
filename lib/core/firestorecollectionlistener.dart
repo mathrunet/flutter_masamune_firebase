@@ -4,6 +4,7 @@ class _FirestoreCollectionListener {
   Query reference;
   StreamSubscription<QuerySnapshot> listener;
   QuerySnapshot snapshot;
+  List<String> removed = [];
   DocumentSnapshot last;
   Map<String, Map<String, dynamic>> data;
   int index;
@@ -13,6 +14,7 @@ class _FirestoreCollectionListener {
     this.snapshot = null;
     this.last = null;
     this.data = null;
+    this.removed.clear();
   }
 
   _FirestoreCollectionListener();

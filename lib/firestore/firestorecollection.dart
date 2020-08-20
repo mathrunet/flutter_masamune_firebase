@@ -239,6 +239,10 @@ class FirestoreCollection extends TaskCollection<FirestoreDocument>
         listener.listener =
             listener.reference.snapshots().listen((snapshot) async {
           listener.snapshot = snapshot;
+          listener.removed = snapshot.documentChanges.mapAndRemoveEmpty(
+              (item) => item?.type == DocumentChangeType.removed
+                  ? item?.document?.documentID
+                  : null);
           Timestamp updatedTime;
           Map<String, Map<String, dynamic>> data = MapPool.get();
           DocumentSnapshot prev = listener.last;
@@ -305,6 +309,10 @@ class FirestoreCollection extends TaskCollection<FirestoreDocument>
         listener.listener =
             listener.reference.snapshots().listen((snapshot) async {
           listener.snapshot = snapshot;
+          listener.removed = snapshot.documentChanges.mapAndRemoveEmpty(
+              (item) => item?.type == DocumentChangeType.removed
+                  ? item?.document?.documentID
+                  : null);
           Timestamp updatedTime;
           Map<String, Map<String, dynamic>> data = MapPool.get();
           DocumentSnapshot prev = listener.last;
@@ -357,6 +365,10 @@ class FirestoreCollection extends TaskCollection<FirestoreDocument>
       listener.listener =
           listener.reference.snapshots().listen((snapshot) async {
         listener.snapshot = snapshot;
+        listener.removed = snapshot.documentChanges.mapAndRemoveEmpty((item) =>
+            item?.type == DocumentChangeType.removed
+                ? item?.document?.documentID
+                : null);
         Timestamp updatedTime;
         Map<String, Map<String, dynamic>> data = MapPool.get();
         for (DocumentSnapshot doc in snapshot.documents) {
@@ -416,7 +428,13 @@ class FirestoreCollection extends TaskCollection<FirestoreDocument>
         if (!this
             ._listener
             .any((element) => element?.data?.containsKey(doc.id) ?? false)) {
+          if (this
+              ._listener
+              .any((element) => element?.removed?.contains(doc.id) ?? false)) {
+            doc._isDisposable = true;
+          }
           this.remove(doc);
+          if (!doc.isDisposed) doc.notifyUpdate();
         }
       }
       Log.ast("Updated data: %s (%s)", [this.path, this.runtimeType]);

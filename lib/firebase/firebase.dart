@@ -39,21 +39,25 @@ class Firebase extends TaskUnit {
   void _startUpdate() {
     if (this._timer != null) return;
     this._timer = Timer.periodic(Config.periodicExecutionTime, (timer) async {
-      if (this._updateStack.length <= 0) return;
-      await this._db.runTransaction((transaction) async {
-        FirestoreDocument doc;
-        List<FirestoreDocument> applied = ListPool.get();
-        List<Future> tasks = ListPool.get();
-        while (this._updateStack.length > 0 &&
-            (doc = this._updateStack.removeLast()) != null) {
-          if (applied.contains(doc)) continue;
-          tasks.add(doc._saveInternal(transaction));
-          applied.add(doc);
-        }
-        if (tasks.length > 0) await Future.wait(tasks);
-        applied.release();
-        tasks.release();
-      });
+      await this._executeUpdate();
+    });
+  }
+
+  Future _executeUpdate() async {
+    if (this._updateStack.length <= 0) return;
+    await this._db.runTransaction((transaction) async {
+      FirestoreDocument doc;
+      List<FirestoreDocument> applied = ListPool.get();
+      List<Future> tasks = ListPool.get();
+      while (this._updateStack.length > 0 &&
+          (doc = this._updateStack.removeLast()) != null) {
+        if (applied.contains(doc)) continue;
+        tasks.add(doc._saveInternal(transaction));
+        applied.add(doc);
+      }
+      if (tasks.length > 0) await Future.wait(tasks);
+      applied.release();
+      tasks.release();
     });
   }
 
@@ -191,4 +195,10 @@ class Firebase extends TaskUnit {
   /// Get the protocol of the path.
   @override
   String get protocol => "firestore";
+
+  /// Callback event when application quit.
+  @override
+  void onApplicationQuit() {
+    this._executeUpdate();
+  }
 }
