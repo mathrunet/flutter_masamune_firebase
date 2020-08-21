@@ -267,7 +267,7 @@ packages:
       name: masamune_flutter
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.4.6+8"
+    version: "0.4.7"
   masamune_localize:
     dependency: "direct main"
     description:
