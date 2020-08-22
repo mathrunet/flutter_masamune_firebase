@@ -24,7 +24,9 @@ import 'package:flutter/rendering.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:masamune_flutter/masamune_flutter.dart';
+import 'package:masamune_form/masamune_form.dart';
 export 'package:masamune_flutter/masamune_flutter.dart';
+export 'package:masamune_form/masamune_form.dart';
 
 part 'config/appconfigdocument.dart';
 part 'config/remoteconfigdocument.dart';
@@ -59,6 +61,10 @@ part 'widget/uiloginform.dart';
 part 'widget/uiauth.dart';
 part 'widget/uiauthdialog.dart';
 part 'widget/uiappconfig.dart';
-part 'widget/logoutbutton.dart';
+part 'widget/accountbutton.dart';
+
+part 'widget/reauth.dart';
+part 'widget/changeemail.dart';
+part 'widget/changepassword.dart';
 
 part 'firestore/firestorefolderstructureutility.dart';

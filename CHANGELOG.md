@@ -1,3 +1,7 @@
+## [0.4.1] - Update README (2020.08.22)
+
+* Added a login-only widget.
+
 ## [0.4.0] - Update README (2020.08.07)
 
 * Changed the internal specifications.

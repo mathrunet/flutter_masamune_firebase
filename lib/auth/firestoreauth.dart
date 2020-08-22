@@ -233,6 +233,7 @@ class FirestoreAuth extends Auth {
 
   Future _signOutProcess(Duration timeout) async {
     try {
+      this.init();
       if (this._app == null)
         this.__app = await Firebase.initialize(timeout: timeout);
       if (this._auth == null) {
@@ -240,13 +241,251 @@ class FirestoreAuth extends Auth {
         return;
       }
       await this._auth.signOut().timeout(timeout);
-      this.init();
       this._link = null;
       this.done();
     } on TimeoutException catch (e) {
       this.timeout(e.toString());
     } catch (e) {
       this.error(e.toString());
+    }
+  }
+
+  /// Re-authenticate using your email address and password.
+  ///
+  /// [password]: Password.
+  /// [protorol]: Protocol specification.
+  /// [timeout]: Timeout time.
+  static Future<FirestoreAuth> reauthInEmailAndPassword(
+      {@required String password,
+      String protocol,
+      Duration timeout = Const.timeout}) {
+    assert(isNotEmpty(password));
+    if (isEmpty(password)) {
+      Log.error("This password is invalid.");
+      return Future.delayed(Duration.zero);
+    }
+    if (isEmpty(protocol)) protocol = "firestore";
+    String path = Texts.format(_systemPath, [protocol]);
+    FirestoreAuth unit = PathMap.get<FirestoreAuth>(path);
+    if (unit == null) unit = FirestoreAuth._(path);
+    assert(!(isEmpty(unit.uid) || unit._link == null));
+    if (isEmpty(unit.uid) || unit._link == null) {
+      Log.error("Not logged in yet. Please wait until login is successful.");
+      return unit.future;
+    }
+    unit._reauthInEmailAndPasswordProcess(password, timeout);
+    return unit.future;
+  }
+
+  Future _reauthInEmailAndPasswordProcess(
+      String password, Duration timeout) async {
+    try {
+      this.init();
+      if (this._app == null)
+        this.__app = await Firebase.initialize(timeout: timeout);
+      if (this._auth == null) {
+        this.error("Firebase auth is not found.");
+        return;
+      }
+      await this._link.reauthenticateWithCredential(
+          EmailAuthProvider.getCredential(
+              email: this._link.email, password: password));
+      this.done();
+    } on TimeoutException catch (e) {
+      this.timeout(e.toString());
+    } catch (e) {
+      this.error(e.toString());
+    }
+  }
+
+  /// Change your email address.
+  ///
+  /// It is necessary to execute [reauthInEmailAndPassword]
+  /// in advance to re-authenticate.
+  ///
+  /// [email]: Mail address.
+  /// [locale]: Specify the language of the confirmation email.
+  /// [protorol]: Protocol specification.
+  /// [timeout]: Timeout time.
+  static Future<FirestoreAuth> changeEmail(
+      {@required String email,
+      String protocol,
+      String locale,
+      Duration timeout = Const.timeout}) {
+    assert(isNotEmpty(email));
+    if (isEmpty(email)) {
+      Log.error("This email is invalid.");
+      return Future.delayed(Duration.zero);
+    }
+    if (isEmpty(protocol)) protocol = "firestore";
+    String path = Texts.format(_systemPath, [protocol]);
+    FirestoreAuth unit = PathMap.get<FirestoreAuth>(path);
+    if (unit == null) unit = FirestoreAuth._(path);
+    assert(!(isEmpty(unit.uid) || unit._link == null));
+    if (isEmpty(unit.uid) || unit._link == null) {
+      Log.error("Not logged in yet. Please wait until login is successful.");
+      return unit.future;
+    }
+    unit._changeEmailProcess(email, locale, timeout);
+    return unit.future;
+  }
+
+  Future _changeEmailProcess(
+      String email, String locale, Duration timeout) async {
+    try {
+      this.init();
+      if (this._app == null)
+        this.__app = await Firebase.initialize(timeout: timeout);
+      if (this._auth == null) {
+        this.error("Firebase auth is not found.");
+        return;
+      }
+      await this._auth.setLanguageCode(locale ?? Localize.locale);
+      await this._link.updateEmail(email);
+      this.done();
+    } on TimeoutException catch (e) {
+      this.timeout(e.toString());
+    } catch (e) {
+      this.error(e.toString());
+    }
+  }
+
+  /// Change your password.
+  ///
+  /// It is necessary to execute [reauthInEmailAndPassword]
+  /// in advance to re-authenticate.
+  ///
+  /// [password]: The changed password.
+  /// [locale]: Specify the language of the confirmation email.
+  /// [protorol]: Protocol specification.
+  /// [timeout]: Timeout time.
+  static Future<FirestoreAuth> changePassword(
+      {@required String password,
+      String protocol,
+      String locale,
+      Duration timeout = Const.timeout}) {
+    assert(isNotEmpty(password));
+    if (isEmpty(password)) {
+      Log.error("This password is invalid.");
+      return Future.delayed(Duration.zero);
+    }
+    if (isEmpty(protocol)) protocol = "firestore";
+    String path = Texts.format(_systemPath, [protocol]);
+    FirestoreAuth unit = PathMap.get<FirestoreAuth>(path);
+    if (unit == null) unit = FirestoreAuth._(path);
+    assert(!(isEmpty(unit.uid) || unit._link == null));
+    if (isEmpty(unit.uid) || unit._link == null) {
+      Log.error("Not logged in yet. Please wait until login is successful.");
+      return unit.future;
+    }
+    unit._changePasswordProcess(password, locale, timeout);
+    return unit.future;
+  }
+
+  Future _changePasswordProcess(
+      String password, String locale, Duration timeout) async {
+    try {
+      this.init();
+      if (this._app == null)
+        this.__app = await Firebase.initialize(timeout: timeout);
+      if (this._auth == null) {
+        this.error("Firebase auth is not found.");
+        return;
+      }
+      await this._auth.setLanguageCode(locale ?? Localize.locale);
+      await this._link.updatePassword(password);
+      this.done();
+    } on TimeoutException catch (e) {
+      this.timeout(e.toString());
+    } catch (e) {
+      this.error(e.toString());
+    }
+  }
+
+  /// Resend the email for email address verification.
+  ///
+  /// [protorol]: Protocol specification.
+  /// [locale]: Specify the language of the confirmation email.
+  /// [timeout]: Timeout time.
+  static Future<FirestoreAuth> sendEmailVerification(
+      {String protocol, Duration timeout = Const.timeout, String locale}) {
+    if (isEmpty(protocol)) protocol = "firestore";
+    String path = Texts.format(_systemPath, [protocol]);
+    FirestoreAuth unit = PathMap.get<FirestoreAuth>(path);
+    if (unit == null) unit = FirestoreAuth._(path);
+    assert(!(isEmpty(unit.uid) || unit._link == null));
+    if (isEmpty(unit.uid) || unit._link == null) {
+      Log.error("Not logged in yet. Please wait until login is successful.");
+      return unit.future;
+    }
+    unit._sendEmailVerificationProcess(locale, timeout);
+    return unit.future;
+  }
+
+  Future _sendEmailVerificationProcess(String locale, Duration timeout) async {
+    try {
+      this.init();
+      if (this._app == null)
+        this.__app = await Firebase.initialize(timeout: timeout);
+      if (this._auth == null) {
+        this.error("Firebase auth is not found.");
+        return;
+      }
+      await this._auth.setLanguageCode(locale ?? Localize.locale);
+      await this._link.sendEmailVerification();
+      this.done();
+    } on TimeoutException catch (e) {
+      this.timeout(e.toString());
+    } catch (e) {
+      this.error(e.toString());
+    }
+  }
+
+  /// Send you an email to reset your password.
+  ///
+  /// [email]: Email.
+  /// [protorol]: Protocol specification.
+  /// [locale]: Specify the language of the confirmation email.
+  /// [timeout]: Timeout time.
+  static Future<FirestoreAuth> sendPasswordResetEmail(
+      {@required String email,
+      String protocol,
+      String locale,
+      Duration timeout = Const.timeout}) {
+    assert(isNotEmpty(email));
+    if (isEmpty(email)) {
+      Log.error("This email is invalid.");
+      return Future.delayed(Duration.zero);
+    }
+    if (isEmpty(protocol)) protocol = "firestore";
+    String path = Texts.format(_systemPath, [protocol]);
+    FirestoreAuth unit = PathMap.get<FirestoreAuth>(path);
+    if (unit == null) {
+      unit = FirestoreAuth._(path);
+    } else {
+      unit.init();
+    }
+    unit._sendPasswordResetEmailProcess(email, locale, timeout);
+    return unit.future;
+  }
+
+  Future _sendPasswordResetEmailProcess(
+      String email, String locale, Duration timeout) async {
+    try {
+      if (this._app == null)
+        this.__app = await Firebase.initialize(timeout: timeout);
+      if (this._auth == null) {
+        this.error("Firebase auth is not found.");
+        return;
+      }
+      await this._auth.setLanguageCode(locale ?? Localize.locale);
+      await this._auth.sendPasswordResetEmail(email: email);
+      this.done();
+    } on TimeoutException catch (e) {
+      this.timeout(e.toString());
+    } catch (e) {
+      this.error(e.toString());
+      return;
     }
   }
 
@@ -257,10 +496,11 @@ class FirestoreAuth extends Auth {
   /// Enter the link acquired by Dynamic Link.
   ///
   /// [link]: Email link.
+  /// [locale]: Specify the language of the confirmation email.
   /// [protorol]: Protocol specification.
   /// [timeout]: Timeout time.
   static Future<FirestoreAuth> signInEmailLink(String link,
-      {String protocol, Duration timeout = Const.timeout}) {
+      {String protocol, String locale, Duration timeout = Const.timeout}) {
     assert(isNotEmpty(link));
     if (isEmpty(link)) {
       Log.error("This email link is invalid.");
@@ -281,18 +521,19 @@ class FirestoreAuth extends Auth {
     } else {
       unit.init();
     }
-    unit._linkToEmailLinkProcess(email, link, timeout);
+    unit._linkToEmailLinkProcess(email, link, locale, timeout);
     return unit.future;
   }
 
   Future _linkToEmailLinkProcess(
-      String email, String link, Duration timeout) async {
+      String email, String link, String locale, Duration timeout) async {
     try {
       await this._prepareProcessInternal(timeout);
       if (!await this._auth.isSignInWithEmailLink(link)) {
         this.error("This email link is invalid.");
         return;
       }
+      await this._auth.setLanguageCode(locale ?? Localize.locale);
       AuthCredential credential =
           EmailAuthProvider.getCredentialWithLink(email: email, link: link);
       if (this._link != null) {
@@ -327,12 +568,14 @@ class FirestoreAuth extends Auth {
   /// [packageName]: App package name.
   /// [androidMinimumVersion]: Minimum version of android.
   /// [protorol]: Protocol specification.
+  /// [locale]: Specify the language of the confirmation email.
   /// [timeout]: Timeout time.
   static Future<FirestoreAuth> sendEmailLink(
       {@required String email,
       @required String url,
       @required String packageName,
       int androidMinimumVersion = 1,
+      String locale,
       String protocol,
       Duration timeout = Const.timeout}) {
     assert(isNotEmpty(email));
@@ -353,6 +596,7 @@ class FirestoreAuth extends Auth {
         url: url,
         androidMinimumVersion: androidMinimumVersion,
         packageName: packageName,
+        locale: locale,
         timeout: timeout);
     return unit.future;
   }
@@ -362,6 +606,7 @@ class FirestoreAuth extends Auth {
       String url,
       String packageName,
       int androidMinimumVersion,
+      String locale,
       Duration timeout}) async {
     try {
       await this._prepareProcessInternal(timeout);
@@ -371,6 +616,7 @@ class FirestoreAuth extends Auth {
         this.error("This user is already linked to a Email account.");
         return;
       }
+      await this._auth.setLanguageCode(locale ?? Localize.locale);
       await this._auth.sendSignInWithEmailLink(
           email: email,
           url: url,
@@ -393,9 +639,12 @@ class FirestoreAuth extends Auth {
   ///
   /// [phoneNumber]: Telephone number (starting with the country code).
   /// [protorol]: Protocol specification.
+  /// [locale]: Specify the language of the confirmation email.
   /// [timeout]: Timeout time.
   static Future<FirestoreAuth> signInSMS(String phoneNumber,
-      {String protocol, Duration timeout = const Duration(seconds: 60)}) {
+      {String protocol,
+      String locale,
+      Duration timeout = const Duration(seconds: 60)}) {
     assert(isNotEmpty(phoneNumber));
     if (isEmpty(phoneNumber)) {
       Log.error("This Phone number is invalid.");
@@ -409,11 +658,12 @@ class FirestoreAuth extends Auth {
     } else {
       unit.init();
     }
-    unit._signInSMS(phoneNumber: phoneNumber, timeout: timeout);
+    unit._signInSMS(phoneNumber: phoneNumber, locale: locale, timeout: timeout);
     return unit.future;
   }
 
-  Future _signInSMS({String phoneNumber, Duration timeout}) async {
+  Future _signInSMS(
+      {String phoneNumber, String locale, Duration timeout}) async {
     try {
       await this._prepareProcessInternal(timeout);
       if (this._link != null &&
@@ -422,6 +672,7 @@ class FirestoreAuth extends Auth {
         this.error("This user is already linked to a Phone number account.");
         return;
       }
+      await this._auth.setLanguageCode(locale ?? Localize.locale);
       await this._auth.verifyPhoneNumber(
           phoneNumber: phoneNumber,
           timeout: timeout,
@@ -457,6 +708,73 @@ class FirestoreAuth extends Auth {
           codeAutoRetrievalTimeout: (error) {
             this.timeout(error);
           });
+    } on TimeoutException catch (e) {
+      this.timeout(e.toString());
+    } catch (e) {
+      this.error(e.toString());
+      return;
+    }
+  }
+
+  /// Register using your email and password.
+  ///
+  /// [email]: Mail address.
+  /// [password]: Password.
+  /// [locale]: Specify the language of the confirmation email.
+  /// [protorol]: Protocol specification.
+  /// [timeout]: Timeout time.
+  static Future<FirestoreAuth> registerInEmailAndPassword(
+      {@required String email,
+      @required String password,
+      String locale,
+      String protocol,
+      Duration timeout = Const.timeout}) {
+    assert(isNotEmpty(email));
+    assert(isNotEmpty(password));
+    if (isEmpty(email) || isEmpty(password)) {
+      Log.error("This email or password is invalid.");
+      return Future.delayed(Duration.zero);
+    }
+    if (isEmpty(protocol)) protocol = "firestore";
+    String path = Texts.format(_systemPath, [protocol]);
+    FirestoreAuth unit = PathMap.get<FirestoreAuth>(path);
+    if (unit == null) {
+      unit = FirestoreAuth._(path);
+    } else {
+      unit.init();
+    }
+    unit._registerToEmailAndPasswordProcess(email, password, locale, timeout);
+    return unit.future;
+  }
+
+  Future _registerToEmailAndPasswordProcess(
+      String email, String password, String locale, Duration timeout) async {
+    try {
+      await this._prepareProcessInternal(timeout);
+      if (this._link != null) {
+        this._link = (await this
+                ._link
+                .linkWithCredential(EmailAuthProvider.getCredential(
+                    email: email, password: password))
+                .timeout(timeout))
+            .user;
+      } else {
+        await this._auth.setLanguageCode(locale ?? Localize.locale);
+        this._link = (await this
+                ._auth
+                .createUserWithEmailAndPassword(
+                    email: email, password: password)
+                .timeout(timeout))
+            .user;
+      }
+      if (this._link == null || isEmpty(this._link.uid)) {
+        this.error("User is not found.");
+        return;
+      }
+      Log.ast("Created a user with Email and Password: %s", [this._link.uid]);
+      if (_onAuthorized != null)
+        await _onAuthorized(this, this._link, this._link.uid);
+      this.authorized(this._link.uid);
     } on TimeoutException catch (e) {
       this.timeout(e.toString());
     } catch (e) {
