@@ -405,7 +405,9 @@ class FirestoreDocument extends TaskDocument<DataField>
         ._updateStack
         .removeWhere((element) => element == this || element.path == this.path);
     this._app._updateStack.add(this);
-    if (!this.isTemporary) this._app._addChild(this);
+    if (!this.isTemporary) {
+      this._app._addChild(this);
+    }
     return this.future;
   }
 

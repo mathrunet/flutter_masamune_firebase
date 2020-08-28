@@ -571,9 +571,8 @@ class SearchableFirestoreCollection extends TaskCollection<FirestoreDocument>
   // ignore: unused_element
   void _addChildInternal(FirestoreDocument document) {
     if (document == null) return;
-    if (this.data.containsKey(document.id)) return;
     if (!this._queryInternal(document)) return;
-    this.data[document.id] = document;
+    if (!this.data.containsKey(document.id)) this.data[document.id] = document;
     this.notifyUpdate();
   }
 
