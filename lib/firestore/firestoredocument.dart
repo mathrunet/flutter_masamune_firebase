@@ -304,7 +304,15 @@ class FirestoreDocument extends TaskDocument<DataField>
           in FirestoreMeta.filter.entries) {
         value = tmp.value(key, value, data, this);
       }
-      list.add(DataField(Paths.child(path, key), value));
+      if (value is DataField) {
+        String child = Paths.child(path, key);
+        if (value.path == child)
+          list.add(value);
+        else
+          list.add(value.clone(path: child, isTemporary: false));
+      } else {
+        list.add(DataField(Paths.child(path, key), value));
+      }
     });
     return list;
   }
