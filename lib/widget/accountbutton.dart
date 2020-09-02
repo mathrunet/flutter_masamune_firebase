@@ -50,6 +50,9 @@ class AccountButton extends StatelessWidget {
   /// Displays the password change menu.
   final bool enableChangePassword;
 
+  /// Callback for a successful logout.
+  final Function onLogout;
+
   /// Menu button to account management.
   ///
   /// Please install it in the actions of AppBar.
@@ -68,6 +71,7 @@ class AccountButton extends StatelessWidget {
       this.changeEmailRoutePath = "/account/email/edit",
       this.changePasswordRoutePath = "/account/password/edit",
       this.enableChangeEmail = false,
+      this.onLogout,
       this.enableChangePassword = false});
 
   /// Build method.
@@ -85,7 +89,14 @@ class AccountButton extends StatelessWidget {
                 text: this.logoutConfirmText.localize(),
                 submitText: this.logoutSubmitText.localize(),
                 onSubmit: () async {
-              await FirestoreAuth.signOut().showIndicator(context);
+              FirestoreAuth auth =
+                  await FirestoreAuth.signOut().showIndicator(context);
+              if (auth == null || auth.isError || auth.isAbort) {
+                UIDialog.show(context,
+                    title: "Error".localize(), text: auth?.message);
+                return;
+              }
+              if (this.onLogout != null) this.onLogout();
               UIDialog.show(context,
                   title: this.logoutCompletedTitle.localize(),
                   text: this.logoutCompletedText.localize(),
