@@ -120,6 +120,37 @@ class FirestoreQuery {
     this._key = null;
   }
 
+  /// Sort in ascending order.
+  ///
+  /// You can specify a sort key,
+  /// but if you want to use a different key from the query key,
+  /// you need to create a composite index.
+  ///
+  /// [key]: Key for sorting.
+  FirestoreQuery.orderByAsc([String key]) {
+    this._orderBy = OrderBy.asc;
+    this._orderByKey = key;
+  }
+
+  /// Sort in descending order.
+  ///
+  /// You can specify a sort key,
+  /// but if you want to use a different key from the query key,
+  /// you need to create a composite index.
+  ///
+  /// [key]: Key for sorting.
+  FirestoreQuery.orderByDesc([String key]) {
+    this._orderBy = OrderBy.desc;
+    this._orderByKey = key;
+  }
+
+  /// Set a limit on the number of items that can be retrieved by query.
+  ///
+  /// [limit]: Limit number.
+  FirestoreQuery.limitAt([int limit]) {
+    this._limit = limit == null ? -1 : limit.limit(0, 10000);
+  }
+
   /// Set the query type.
   FirestoreQueryType get type => this._type;
   FirestoreQueryType _type = FirestoreQueryType.none;

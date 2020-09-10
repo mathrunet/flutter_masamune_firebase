@@ -488,6 +488,9 @@ class FirestoreCollection extends TaskCollection<FirestoreDocument>
       return reference;
     Query fquery = reference;
     switch (this.query.type) {
+      case FirestoreQueryType.none:
+        fquery = this._buildOrderInternal(fquery);
+        break;
       case FirestoreQueryType.equalTo:
         if (this.query.value != null)
           fquery = fquery.where(this.query.key, isEqualTo: this.query.value);
@@ -596,7 +599,8 @@ class FirestoreCollection extends TaskCollection<FirestoreDocument>
 
   Query _buildPositionInternal(Query fquery, DocumentSnapshot lastSnapshot) {
     if (lastSnapshot == null) return fquery;
-    if (this.query.orderBy == OrderBy.none) return fquery;
+    if (this.query.orderBy == OrderBy.none || this.query.limit < 0)
+      return fquery;
     return fquery.startAfterDocument(lastSnapshot);
   }
 
