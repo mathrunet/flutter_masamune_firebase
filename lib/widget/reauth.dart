@@ -64,7 +64,7 @@ class ReAuth extends UIPageForm {
   /// What happens when a form is submitted.
   @override
   void onSubmit(BuildContext context) async {
-    if (!this.validate()) return;
+    if (!this.validate(context)) return;
     final auth =
         await FirestoreAuth.reauthInEmailAndPassword(password: form["password"])
             .showIndicator(context);

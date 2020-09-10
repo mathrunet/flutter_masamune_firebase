@@ -503,9 +503,13 @@ class SearchableFirestoreCollection extends TaskCollection<FirestoreDocument>
         this.searchText.length <= 1) {
       fquery = _buildOrderInternal(fquery);
     } else {
+      List<String> tmp = ListPool.get();
       Texts.bigram(this.searchText.toLowerCase())?.forEach((text) {
+        if (tmp.contains(text)) return;
+        tmp.add(text);
         fquery = fquery.where("${this.queryKey}.$text", isEqualTo: true);
       });
+      tmp.release();
     }
     return fquery.limit(this.limit);
   }

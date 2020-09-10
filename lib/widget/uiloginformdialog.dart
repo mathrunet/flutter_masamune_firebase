@@ -56,6 +56,7 @@ class UILoginFormDialog extends StatelessWidget with UIFormMixin {
           FlatButton(
             child: Text(this.defaultSubmitText.localize()),
             onPressed: () {
+              context.unfocus();
               if (!this.formKey.currentState.validate()) return;
               Navigator.of(context, rootNavigator: true).pop();
               if (this.defaultSubmitAction == null) return;

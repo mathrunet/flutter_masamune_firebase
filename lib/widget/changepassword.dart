@@ -4,7 +4,7 @@ class ChangePassword extends UIPageChangePassword {
   /// What happens when a form is submitted.
   @override
   void onSubmit(BuildContext context) async {
-    if (!this.validate()) return;
+    if (!this.validate(context)) return;
     if (form["password"] != form["confirmation"]) {
       UIDialog.show(context,
           title: "Error".localize(),

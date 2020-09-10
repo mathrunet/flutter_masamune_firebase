@@ -12,7 +12,7 @@ class ChangeEmail extends UIPageChangeEmail {
   /// What happens when a form is submitted.
   @override
   void onSubmit(BuildContext context) async {
-    if (!this.validate()) return;
+    if (!this.validate(context)) return;
     final auth = await FirestoreAuth.changeEmail(email: form["email"])
         .showIndicator(context);
     if (auth == null || auth.isError || auth.isAbort) {
