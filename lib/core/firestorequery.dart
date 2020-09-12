@@ -89,12 +89,17 @@ class FirestoreQuery {
   /// [key]: Key to query.
   /// [value]: Value to query.
   FirestoreQuery.containsAny(String key, Iterable values) {
-    this._type = FirestoreQueryType.arrayContainsAny;
-    this._key = key;
-    this.contains.addAll(values?.map((e) {
-          if (e is String) return e.applyTags();
-          return e;
-        })?.distinct());
+    if (values == null || values.length <= 0) {
+      this._type = FirestoreQueryType.empty;
+      this._key = null;
+    } else {
+      this._type = FirestoreQueryType.arrayContainsAny;
+      this._key = key;
+      this.contains.addAll(values?.map((e) {
+            if (e is String) return e.applyTags();
+            return e;
+          })?.distinct());
+    }
   }
 
   /// Set up a Firestore query.
@@ -104,12 +109,17 @@ class FirestoreQuery {
   /// [key]: Key to query.
   /// [value]: Value to query.
   FirestoreQuery.inArray(String key, Iterable values) {
-    this._type = FirestoreQueryType.inArray;
-    this._key = key;
-    this.contains.addAll(values?.map((e) {
-          if (e is String) return e.applyTags();
-          return e;
-        })?.distinct());
+    if (values == null || values.length <= 0) {
+      this._type = FirestoreQueryType.empty;
+      this._key = null;
+    } else {
+      this._type = FirestoreQueryType.inArray;
+      this._key = key;
+      this.contains.addAll(values?.map((e) {
+            if (e is String) return e.applyTags();
+            return e;
+          })?.distinct());
+    }
   }
 
   /// Set up a Firestore query.
@@ -118,6 +128,18 @@ class FirestoreQuery {
   FirestoreQuery.empty() {
     this._type = FirestoreQueryType.empty;
     this._key = null;
+  }
+
+  /// Sort in order.
+  ///
+  /// You can specify a sort key,
+  /// but if you want to use a different key from the query key,
+  /// you need to create a composite index.
+  ///
+  /// [key]: Key for sorting.
+  FirestoreQuery.orderBy({String key, OrderBy orderBy}) {
+    this._orderBy = orderBy;
+    this._orderByKey = key;
   }
 
   /// Sort in ascending order.

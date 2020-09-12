@@ -661,6 +661,7 @@ class FirestoreCollection extends TaskCollection<FirestoreDocument>
     if (document == null) return;
     if (!this._queryInternal(document)) return;
     if (!this.data.containsKey(document.id)) this.data[document.id] = document;
+    this.sort();
     this.notifyUpdate();
   }
 
