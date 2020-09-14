@@ -40,16 +40,19 @@ class FirestoreMeta {
             .collection(tmp)
             .snapshots()
             .listen((collection) {
+          if (document.containsKey(tmp) && document.isUpdating) return;
+          if (document.containsKey("time") &&
+              document.containsKey("@time") &&
+              document["time"] != document["@time"]) return;
           num count = collection?.documents?.fold(
                   0,
                   (previousValue, element) =>
                       previousValue + (element?.data["value"] ?? 0)) ??
               0;
-          if (document.containsKey(tmp) && document[tmp] != count) return;
           document[tmp] = count;
         });
       }
-      return data.containsKey(tmp) ? data[tmp] : value;
+      return value;
     }
   };
 }
