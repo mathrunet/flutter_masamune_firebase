@@ -12,6 +12,7 @@ import 'dart:async';
 import 'dart:math';
 import 'dart:io';
 import 'package:flutter/services.dart';
+import 'package:flutter_widget_model/flutter_widget_model.dart';
 import 'package:http/http.dart';
 import 'package:package_info/package_info.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -46,6 +47,10 @@ part 'firestore/ifirestorecollectionlistener.dart';
 part 'firestore/firestoredocument.dart';
 part 'firestore/firestorecollection.dart';
 part 'firestore/searchablefirestorecollection.dart';
+part 'firestore/firestorefolderstructureutility.dart';
+
+part 'firestore/model/firestoredocumentmodel.dart';
+part 'firestore/model/firestorecollectionmodel.dart';
 
 part 'auth/firestoreauth.dart';
 part 'auth/authprovideroptions.dart';
@@ -67,4 +72,3 @@ part 'widget/reauth.dart';
 part 'widget/changeemail.dart';
 part 'widget/changepassword.dart';
 
-part 'firestore/firestorefolderstructureutility.dart';

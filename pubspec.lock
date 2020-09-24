@@ -244,6 +244,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.4.0"
+  flutter_hooks:
+    dependency: transitive
+    description:
+      name: flutter_hooks
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.14.0"
   flutter_sequence_animation:
     dependency: transitive
     description:
@@ -268,6 +275,13 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  flutter_widget_model:
+    dependency: "direct main"
+    description:
+      name: flutter_widget_model
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.4.0+2"
   http:
     dependency: "direct main"
     description:

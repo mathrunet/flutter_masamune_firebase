@@ -364,6 +364,7 @@ class FirestoreDocument extends TaskDocument<DataField>
     if (this.isUpdating) return;
     this.init();
     this._setInternal(data);
+    this.notifyUpdate();
     this.done();
   }
 
