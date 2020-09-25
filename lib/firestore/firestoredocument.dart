@@ -33,6 +33,7 @@ class FirestoreDocument extends TaskDocument<DataField>
   T createInstance<T extends IClonable>(String path, bool isTemporary) =>
       FirestoreDocument._(
           path: path,
+          isListenable: this.isListenable,
           isTemporary: isTemporary,
           group: this.group,
           order: this.order) as T;
@@ -95,6 +96,7 @@ class FirestoreDocument extends TaskDocument<DataField>
   }
 
   /// Manage Firestore documents.
+  /// Listen for data updates.
   ///
   /// Basically listen, set the value if there is a value to update and [save()].
   ///
@@ -124,6 +126,50 @@ class FirestoreDocument extends TaskDocument<DataField>
     }
     FirestoreDocument document = PathMap.get<FirestoreDocument>(path);
     if (document != null) {
+      if (!document.isListenable) document._isListenable = true;
+      if (!document.isUpdatable) document._isUpdatable = true;
+      return document.future;
+    }
+    document = FirestoreDocument._(path: path, isListenable: true);
+    document._constructListener();
+    return document.future;
+  }
+
+  /// Manage Firestore documents.
+  /// Read the data only once.
+  ///
+  /// If you want to reload the data, use [reload()].
+  ///
+  /// Basically listen, set the value if there is a value to update and [save()].
+  ///
+  /// ```
+  /// FirestoreDocument doc = await FirestoreDocuemnt.request( "user/user" );
+  /// String name = doc.getString( "name" );
+  /// doc["age"] = 18;
+  /// doc.save();
+  /// ```
+  ///
+  /// Request and listen to a document.
+  ///
+  /// [path]: Document path.
+  static Future<FirestoreDocument> load(String path) {
+    path =
+        Paths.removeQuery(path?.replaceAll("https", "firestore")?.applyTags());
+    assert(isNotEmpty(path));
+    if (isEmpty(path)) {
+      Log.error("Path is invalid.");
+      return Future.delayed(Duration.zero);
+    }
+    int length = Paths.length(path);
+    assert(!(length <= 0 || length % 2 != 0));
+    if (length <= 0 || length % 2 != 0) {
+      Log.error("Path is not document path.");
+      return Future.delayed(Duration.zero);
+    }
+    FirestoreDocument document = PathMap.get<FirestoreDocument>(path);
+    if (document != null) {
+      if (document.isListenable) document._isListenable = false;
+      if (!document.isUpdatable) document._isUpdatable = true;
       return document.future;
     }
     document = FirestoreDocument._(path: path);
@@ -163,6 +209,8 @@ class FirestoreDocument extends TaskDocument<DataField>
     }
     FirestoreDocument document = PathMap.get<FirestoreDocument>(path);
     if (document != null) {
+      if (document.isListenable) document._isListenable = false;
+      if (!document.isUpdatable) document._isUpdatable = true;
       if (data != null) document.set(document._convertData(path, data));
       return document.asFuture();
     }
@@ -203,6 +251,8 @@ class FirestoreDocument extends TaskDocument<DataField>
     }
     FirestoreDocument document = PathMap.get<FirestoreDocument>(path);
     if (document != null) {
+      if (document.isListenable) document._isListenable = false;
+      if (!document.isUpdatable) document._isUpdatable = true;
       if (data != null) document.set(document._convertData(path, data));
       return document;
     }
@@ -228,6 +278,8 @@ class FirestoreDocument extends TaskDocument<DataField>
     }
     FirestoreDocument document = PathMap.get<FirestoreDocument>(path);
     if (document != null) {
+      if (document.isListenable) document._isListenable = false;
+      if (!document.isUpdatable) document._isUpdatable = true;
       if (data != null) document.set(document._convertData(path, data));
       return document;
     }
@@ -272,11 +324,13 @@ class FirestoreDocument extends TaskDocument<DataField>
 
   FirestoreDocument._(
       {String path,
+      bool isListenable = false,
       Iterable<DataField> children,
       bool isTemporary = false,
       int group = 0,
       int order = 10})
-      : super(
+      : this._isListenable = isListenable,
+        super(
             path: path,
             children: children,
             isTemporary: isTemporary,
@@ -320,6 +374,7 @@ class FirestoreDocument extends TaskDocument<DataField>
   /// Update document data.
   Future<T> reload<T extends IDataDocument>() {
     this.init();
+    this._isUpdatable = true;
     this._constructListener();
     return this.future;
   }
@@ -335,6 +390,7 @@ class FirestoreDocument extends TaskDocument<DataField>
         this.__auth = await FirestoreAuth.signIn(protocol: this.protocol);
       this.__reference = this._app._db.document(this.rawPath.path);
       this._listener = this._reference.snapshots().listen((snapshot) async {
+        if (!this.isUpdatable) return;
         if (snapshot == null ||
             !snapshot.exists ||
             snapshot.data == null ||
@@ -366,6 +422,7 @@ class FirestoreDocument extends TaskDocument<DataField>
     this._setInternal(data);
     this.notifyUpdate();
     this.done();
+    if (!this.isListenable) this._isUpdatable = false;
   }
 
   void _setInternal(Map<String, dynamic> data) {
@@ -498,6 +555,14 @@ class FirestoreDocument extends TaskDocument<DataField>
   /// True if communicating with the server for saving or deleting.
   bool get isUpdating => this._isUpdating;
   bool _isUpdating = false;
+
+  /// True if you are able to update.
+  bool get isUpdatable => this._isUpdatable;
+  bool _isUpdatable = true;
+
+  /// True if you always listen for changes.
+  bool get isListenable => this._isListenable;
+  bool _isListenable = false;
 
   /// Get the protocol of the path.
   @override

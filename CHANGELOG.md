@@ -1,3 +1,7 @@
+## [0.4.2] - Update README (2020.09.25)
+
+* Added a method of load that loads only once.
+
 ## [0.4.1] - Update README (2020.08.22)
 
 * Added a login-only widget.

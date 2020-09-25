@@ -38,6 +38,7 @@ class FirestoreCollection extends TaskCollection<FirestoreDocument>
   T createInstance<T extends IClonable>(String path, bool isTemporary) =>
       FirestoreCollection._(
           path: path,
+          isListenable: this.isListenable,
           isTemporary: isTemporary,
           group: group,
           order: order,
@@ -95,6 +96,7 @@ class FirestoreCollection extends TaskCollection<FirestoreDocument>
   }
 
   /// Get the Firestore collection.
+  /// Listen for data updates.
   ///
   /// Normally retrieve 200 documents from the path,
   /// but you can change the search criteria by specifying [query].
@@ -134,6 +136,76 @@ class FirestoreCollection extends TaskCollection<FirestoreDocument>
     FirestoreCollection collection = PathMap.get<FirestoreCollection>(path);
     if (collection != null) {
       bool reload = false;
+      if (!collection.isListenable) collection._isListenable = true;
+      if (!collection.isUpdatable) collection._isUpdatable = true;
+      if (query != null && !query.equals(collection.query)) {
+        reload = true;
+        collection.query = query;
+      }
+      if (collection.isChanged(
+          orderBy: orderBy,
+          thenBy: thenBy,
+          orderByKey: orderByKey,
+          thenByKey: thenByKey)) reload = true;
+      return reload ? collection.reload() : collection.future;
+    }
+    collection = FirestoreCollection._(
+        path: path,
+        isListenable: true,
+        query: query,
+        orderBy: orderBy,
+        thenBy: thenBy,
+        orderByKey: orderByKey,
+        thenByKey: thenByKey);
+    collection._constructListener();
+    return collection.future;
+  }
+
+  /// Get the Firestore collection.
+  /// Read the data only once.
+  ///
+  /// If you want to reload the data, use [reload()].
+  ///
+  /// Normally retrieve 200 documents from the path,
+  /// but you can change the search criteria by specifying [query].
+  ///
+  /// ```
+  /// FirestoreCollection col = await FirestoreCollection.listen( "user/user" );
+  /// for( FirestoreDocument doc in col ) { ... }
+  /// String name = doc.getString( "name" );
+  /// newDocument["age"] = 18;
+  /// newDocument.save();
+  /// ```
+  ///
+  /// [path]: Collection path.
+  /// [query]: Querying collections.
+  /// [orderBy]: Sort order.
+  /// [orderByKey]: Key for sorting.
+  /// [thenBy]: Sort order when the first sort has the same value.
+  /// [thenByKey]: Sort key when the first sort has the same value.
+  static Future<FirestoreCollection> load(String path,
+      {FirestoreQuery query,
+      OrderBy orderBy = OrderBy.none,
+      OrderBy thenBy = OrderBy.none,
+      String orderByKey,
+      String thenByKey}) {
+    path = path?.replaceAll("https", "firestore")?.applyTags();
+    assert(isNotEmpty(path));
+    if (isEmpty(path)) {
+      Log.error("Path is invalid.");
+      return Future.delayed(Duration.zero);
+    }
+    int length = Paths.length(path);
+    assert(!(length <= 0 || length % 2 != 1));
+    if (length <= 0 || length % 2 != 1) {
+      Log.error("Path is not document path.");
+      return Future.delayed(Duration.zero);
+    }
+    FirestoreCollection collection = PathMap.get<FirestoreCollection>(path);
+    if (collection != null) {
+      bool reload = false;
+      if (collection.isListenable) collection._isListenable = false;
+      if (!collection.isUpdatable) collection._isUpdatable = true;
       if (query != null && !query.equals(collection.query)) {
         reload = true;
         collection.query = query;
@@ -158,6 +230,7 @@ class FirestoreCollection extends TaskCollection<FirestoreDocument>
 
   FirestoreCollection._(
       {String path,
+      bool isListenable = false,
       Iterable<FirestoreDocument> children,
       bool isTemporary = false,
       int group = 0,
@@ -167,7 +240,8 @@ class FirestoreCollection extends TaskCollection<FirestoreDocument>
       OrderBy thenBy = OrderBy.none,
       String orderByKey,
       String thenByKey})
-      : super(
+      : this._isListenable = isListenable,
+        super(
             path: path,
             children: children,
             isTemporary: isTemporary,
@@ -184,6 +258,7 @@ class FirestoreCollection extends TaskCollection<FirestoreDocument>
   /// Update document data.
   Future<T> reload<T extends IDataCollection>() {
     this.init();
+    this._isUpdatable = true;
     this._constructListener();
     return this.future;
   }
@@ -198,6 +273,7 @@ class FirestoreCollection extends TaskCollection<FirestoreDocument>
       return this.future;
     }
     this.init();
+    this._isUpdatable = true;
     this._fetchNext();
     return this.future;
   }
@@ -238,6 +314,7 @@ class FirestoreCollection extends TaskCollection<FirestoreDocument>
             this._app._db.collection(this.rawPath.path), i);
         listener.listener =
             listener.reference.snapshots().listen((snapshot) async {
+          if (!this.isUpdatable) return;
           listener.snapshot = snapshot;
           listener.removed = snapshot.documentChanges.mapAndRemoveEmpty(
               (item) => item?.type == DocumentChangeType.removed
@@ -308,6 +385,7 @@ class FirestoreCollection extends TaskCollection<FirestoreDocument>
             this._buildPositionInternal(listener.reference, last.last);
         listener.listener =
             listener.reference.snapshots().listen((snapshot) async {
+          if (!this.isUpdatable) return;
           listener.snapshot = snapshot;
           listener.removed = snapshot.documentChanges.mapAndRemoveEmpty(
               (item) => item?.type == DocumentChangeType.removed
@@ -364,6 +442,7 @@ class FirestoreCollection extends TaskCollection<FirestoreDocument>
             listener.reference, this._listener[index - 1].last);
       listener.listener =
           listener.reference.snapshots().listen((snapshot) async {
+        if (!this.isUpdatable) return;
         listener.snapshot = snapshot;
         listener.removed = snapshot.documentChanges.mapAndRemoveEmpty((item) =>
             item?.type == DocumentChangeType.removed
@@ -442,6 +521,8 @@ class FirestoreCollection extends TaskCollection<FirestoreDocument>
     this.sort();
     this.notifyUpdate();
     this.done();
+    data.release();
+    if (!this.isListenable) this._isUpdatable = false;
   }
 
   void _setInternal(Iterable<FirestoreDocument> children) {
@@ -617,6 +698,14 @@ class FirestoreCollection extends TaskCollection<FirestoreDocument>
     }
     return false;
   }
+
+  /// True if you are able to update.
+  bool get isUpdatable => this._isUpdatable;
+  bool _isUpdatable = true;
+
+  /// True if you always listen for changes.
+  bool get isListenable => this._isListenable;
+  bool _isListenable = false;
 
   /// Get the protocol of the path.
   @override

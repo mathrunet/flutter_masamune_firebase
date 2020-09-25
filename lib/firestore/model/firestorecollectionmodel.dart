@@ -36,6 +36,8 @@ part of masamune.firebase;
 /// }
 /// ```
 class FirestoreCollectionModel extends CollectionModel<FirestoreCollection> {
+  final bool listenable;
+
   /// Data model with a data structure for firestore collections.
   ///
   /// The contents of the collection store data documents and so on, including data that sequentially reads the stored data list as it is stored.
@@ -43,10 +45,17 @@ class FirestoreCollectionModel extends CollectionModel<FirestoreCollection> {
   /// You can add or remove documents that are children of this collection by using [append] or [delete].
   ///
   /// Defines the data document of the specified [path].
-  FirestoreCollectionModel(String path) : super(path);
+  ///
+  /// If [listenable] is set to true, updates will be monitored.
+  FirestoreCollectionModel(String path, {this.listenable = false})
+      : super(path);
   @override
   FutureOr<FirestoreCollection> build(ModelContext context) async {
-    return FirestoreCollection.listen(this.path);
+    if (this.listenable) {
+      return FirestoreCollection.listen(this.path);
+    } else {
+      return FirestoreCollection.load(this.path);
+    }
   }
 
   /// Add a new document to the collection.

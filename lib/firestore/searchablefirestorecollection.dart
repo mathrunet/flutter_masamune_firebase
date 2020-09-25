@@ -115,6 +115,7 @@ class SearchableFirestoreCollection extends TaskCollection<FirestoreDocument>
   }
 
   /// Perform a full text search in Firestore using the fields you created the map in Bigram.
+  /// Listen for data updates.
   ///
   /// For details, please see the URL below.
   ///
@@ -160,6 +161,92 @@ class SearchableFirestoreCollection extends TaskCollection<FirestoreDocument>
         PathMap.get<SearchableFirestoreCollection>(path);
     if (collection != null) {
       bool reload = false;
+      if (!collection.isListenable) collection._isListenable = true;
+      if (!collection.isUpdatable) collection._isUpdatable = true;
+      if (searchText != null && searchText != collection.searchText) {
+        reload = true;
+        collection._searchText = searchText;
+      }
+      if (queryKey != null && queryKey != collection.queryKey) {
+        reload = true;
+        collection._queryKey = queryKey;
+      }
+      if (limit != null && limit > 0 && limit != collection.limit) {
+        reload = true;
+        collection._limit = limit;
+      }
+      if (collection.isChanged(
+          orderBy: orderBy,
+          thenBy: thenBy,
+          orderByKey: orderByKey,
+          thenByKey: thenByKey)) reload = true;
+      return reload ? collection.reload() : collection.future;
+    }
+    collection = SearchableFirestoreCollection._(
+        path: path,
+        queryKey: queryKey,
+        isListenable: true,
+        searchText: searchText,
+        limit: limit,
+        orderBy: orderBy,
+        thenBy: thenBy,
+        orderByKey: orderByKey,
+        thenByKey: thenByKey);
+    collection._constructListener();
+    return collection.future;
+  }
+
+  /// Perform a full text search in Firestore using the fields you created the map in Bigram.
+  /// Read the data only once.
+  ///
+  /// If you want to reload the data, use [reload()].
+  ///
+  /// For details, please see the URL below.
+  ///
+  /// https://qiita.com/oukayuka/items/d3cee72501a55e8be44a
+  ///
+  /// ```
+  /// SearchableFirestoreCollection col = await SearchableFirestoreCollection.listen( "user/user" );
+  /// for( FirestoreDocument doc in col ) { ... }
+  /// String name = doc.getString( "name" );
+  /// newDocument["age"] = 18;
+  /// newDocument.save();
+  /// ```
+  ///
+  /// [path]: Collection path.
+  /// [queryKey]: Key to search.
+  /// [searchText]: The text to search for.
+  /// [query]: Querying collections.
+  /// [orderBy]: Sort order.
+  /// [orderByKey]: Key for sorting.
+  /// [thenBy]: Sort order when the first sort has the same value.
+  /// [thenByKey]: Sort key when the first sort has the same value.
+  static Future<SearchableFirestoreCollection> load(String path,
+      {String queryKey = "@search",
+      int limit = 500,
+      String searchText,
+      OrderBy orderBy = OrderBy.none,
+      OrderBy thenBy = OrderBy.none,
+      String orderByKey,
+      String thenByKey}) {
+    path = path?.replaceAll("https", "firestore")?.applyTags();
+    assert(isNotEmpty(path));
+    if (isEmpty(path)) {
+      Log.error("Path is invalid.");
+      return Future.delayed(Duration.zero);
+    }
+    int length = Paths.length(path);
+    assert(!(length <= 0 || length % 2 != 1));
+    if (length <= 0 || length % 2 != 1) {
+      Log.error("Path is not document path.");
+      return Future.delayed(Duration.zero);
+    }
+    SearchableFirestoreCollection collection =
+        PathMap.get<SearchableFirestoreCollection>(path);
+    if (collection != null) {
+      bool reload = false;
+      if (collection.isListenable) collection._isListenable = false;
+      if (!collection.isUpdatable) collection._isUpdatable = true;
       if (searchText != null && searchText != collection.searchText) {
         reload = true;
         collection._searchText = searchText;
@@ -197,6 +284,7 @@ class SearchableFirestoreCollection extends TaskCollection<FirestoreDocument>
       String searchText,
       String queryKey = "@search",
       int limit = 500,
+      bool isListenable = false,
       Iterable<FirestoreDocument> children,
       bool isTemporary = false,
       int group = 0,
@@ -205,7 +293,8 @@ class SearchableFirestoreCollection extends TaskCollection<FirestoreDocument>
       OrderBy thenBy = OrderBy.none,
       String orderByKey,
       String thenByKey})
-      : super(
+      : this._isListenable = isListenable,
+        super(
             path: path,
             children: children,
             isTemporary: isTemporary,
@@ -227,6 +316,7 @@ class SearchableFirestoreCollection extends TaskCollection<FirestoreDocument>
   Future search<T extends ISearchable>(String searchText) {
     this.init();
     this._searchText = searchText;
+    this._isUpdatable = true;
     this._constructListener();
     return this.future;
   }
@@ -234,6 +324,7 @@ class SearchableFirestoreCollection extends TaskCollection<FirestoreDocument>
   /// Update document data.
   Future<T> reload<T extends IDataCollection>() {
     this.init();
+    this._isUpdatable = true;
     this._constructListener();
     return this.future;
   }
@@ -248,6 +339,7 @@ class SearchableFirestoreCollection extends TaskCollection<FirestoreDocument>
       return this.future;
     }
     this.init();
+    this._isUpdatable = true;
     this._fatchNext();
     return this.future;
   }
@@ -274,7 +366,9 @@ class SearchableFirestoreCollection extends TaskCollection<FirestoreDocument>
       _FirestoreCollectionListener listener = _FirestoreCollectionListener();
       listener.reference =
           this._buildQueryInternal(this._app._db.collection(this.rawPath.path));
-      listener.listener = listener.reference.snapshots().listen((snapshot) {
+      listener.listener =
+          listener.reference.snapshots().listen((snapshot) async {
+        if (!this._isUpdatable) return;
         listener.snapshot = snapshot;
         listener.removed = snapshot.documentChanges.mapAndRemoveEmpty((item) =>
             item?.type == DocumentChangeType.removed
@@ -294,7 +388,7 @@ class SearchableFirestoreCollection extends TaskCollection<FirestoreDocument>
           listener.last = doc;
         }
         if (prev != null && prev != listener.last) {
-          this._fetchAt(this._listener.indexOf(listener) + 1);
+          await this._fetchAt(this._listener.indexOf(listener) + 1);
         }
         this._done(
             data,
@@ -330,7 +424,9 @@ class SearchableFirestoreCollection extends TaskCollection<FirestoreDocument>
           this._buildQueryInternal(this._app._db.collection(this.rawPath.path));
       listener.reference =
           this._buildPositionInternal(listener.reference, last.last);
-      listener.listener = listener.reference.snapshots().listen((snapshot) {
+      listener.listener =
+          listener.reference.snapshots().listen((snapshot) async {
+        if (!this._isUpdatable) return;
         listener.snapshot = snapshot;
         listener.removed = snapshot.documentChanges.mapAndRemoveEmpty((item) =>
             item?.type == DocumentChangeType.removed
@@ -350,7 +446,7 @@ class SearchableFirestoreCollection extends TaskCollection<FirestoreDocument>
           listener.last = doc;
         }
         if (prev != null && prev != listener.last) {
-          this._fetchAt(this._listener.indexOf(listener) + 1);
+          await this._fetchAt(this._listener.indexOf(listener) + 1);
         }
         this._done(
             data,
@@ -379,7 +475,9 @@ class SearchableFirestoreCollection extends TaskCollection<FirestoreDocument>
       if (index > 0)
         listener.reference = this._buildPositionInternal(
             listener.reference, this._listener[index - 1].last);
-      listener.listener = listener.reference.snapshots().listen((snapshot) {
+      listener.listener =
+          listener.reference.snapshots().listen((snapshot) async {
+        if (!this._isUpdatable) return;
         listener.snapshot = snapshot;
         listener.removed = snapshot.documentChanges.mapAndRemoveEmpty((item) =>
             item?.type == DocumentChangeType.removed
@@ -397,7 +495,7 @@ class SearchableFirestoreCollection extends TaskCollection<FirestoreDocument>
           }
           listener.last = doc;
         }
-        this._fetchAt(index + 1);
+        await this._fetchAt(index + 1);
         this._done(
             data,
             listener,
@@ -452,8 +550,10 @@ class SearchableFirestoreCollection extends TaskCollection<FirestoreDocument>
       Log.ast("Updated data: %s (%s)", [this.path, this.runtimeType]);
     }
     this.sort();
+    this.notifyUpdate();
     this.done();
     data.release();
+    if (!this.isListenable) this._isUpdatable = false;
   }
 
   void _setInternal(Iterable<FirestoreDocument> children) {
@@ -542,6 +642,14 @@ class SearchableFirestoreCollection extends TaskCollection<FirestoreDocument>
     }
     return false;
   }
+
+  /// True if you are able to update.
+  bool get isUpdatable => this._isUpdatable;
+  bool _isUpdatable = true;
+
+  /// True if you always listen for changes.
+  bool get isListenable => this._isListenable;
+  bool _isListenable = false;
 
   /// Get the protocol of the path.
   @override

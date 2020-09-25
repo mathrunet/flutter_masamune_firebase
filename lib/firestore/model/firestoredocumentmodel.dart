@@ -41,6 +41,8 @@ part of masamune.firebase;
 /// }
 /// ```
 class FirestoreDocumentModel extends DocumentModel<FirestoreDocument> {
+  final bool listenable;
+
   /// Data model for working with Firestore documents.
   ///
   /// You can use the same data structure of your Firestore documents.
@@ -48,10 +50,16 @@ class FirestoreDocumentModel extends DocumentModel<FirestoreDocument> {
   /// Fields are retrieved by [getString] and so on, documents are saved by [save] and deleted by [delete].
   ///
   /// Defines the data document of the specified [path].
-  FirestoreDocumentModel(String path) : super(path);
+  ///
+  /// If [listenable] is set to true, updates will be monitored.
+  FirestoreDocumentModel(String path, {this.listenable = false}) : super(path);
   @override
   FutureOr<FirestoreDocument> build(ModelContext context) async {
-    return FirestoreDocument.listen(this.path);
+    if (this.listenable) {
+      return FirestoreDocument.listen(this.path);
+    } else {
+      return FirestoreDocument.load(this.path);
+    }
   }
 
   @override
