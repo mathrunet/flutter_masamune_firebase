@@ -71,4 +71,3 @@ part 'widget/accountbutton.dart';
 part 'widget/reauth.dart';
 part 'widget/changeemail.dart';
 part 'widget/changepassword.dart';
-

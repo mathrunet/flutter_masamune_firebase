@@ -1,9 +1,9 @@
 part of masamune.firebase;
 
 /// Data model for working with Firestore documents.
-/// 
+///
 /// You can use the same data structure of your Firestore documents.
-/// 
+///
 /// Fields are retrieved by [getString] and so on, documents are saved by [save] and deleted by [delete].
 ///
 /// ```
@@ -42,9 +42,9 @@ part of masamune.firebase;
 /// ```
 class FirestoreDocumentModel extends DocumentModel<FirestoreDocument> {
   /// Data model for working with Firestore documents.
-  /// 
+  ///
   /// You can use the same data structure of your Firestore documents.
-  /// 
+  ///
   /// Fields are retrieved by [getString] and so on, documents are saved by [save] and deleted by [delete].
   ///
   /// Defines the data document of the specified [path].
@@ -52,7 +52,8 @@ class FirestoreDocumentModel extends DocumentModel<FirestoreDocument> {
   @override
   FutureOr<FirestoreDocument> build(ModelContext context) async {
     return FirestoreDocument.listen(this.path);
-  }  
+  }
+
   @override
   Future save(
       {Map<String, dynamic> data,
