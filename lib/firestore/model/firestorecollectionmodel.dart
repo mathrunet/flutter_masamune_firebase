@@ -47,14 +47,27 @@ class FirestoreCollectionModel extends CollectionModel<FirestoreCollection> {
   /// Defines the data document of the specified [path].
   ///
   /// If [listenable] is set to true, updates will be monitored.
-  FirestoreCollectionModel(String path, {this.listenable = false})
-      : super(path);
+  FirestoreCollectionModel(String path,
+      {this.listenable = false,
+      OrderBy orderBy = OrderBy.none,
+      String orderByKey,
+      OrderBy thenBy = OrderBy.none,
+      String thenByKey})
+      : super(path, orderBy, orderByKey, thenBy, thenByKey);
   @override
   FutureOr<FirestoreCollection> build(ModelContext context) async {
     if (this.listenable) {
-      return FirestoreCollection.listen(this.path);
+      return FirestoreCollection.listen(this.path,
+          orderBy: this.orderBy,
+          thenBy: this.thenBy,
+          orderByKey: this.orderByKey,
+          thenByKey: this.thenByKey);
     } else {
-      return FirestoreCollection.load(this.path);
+      return FirestoreCollection.load(this.path,
+          orderBy: this.orderBy,
+          thenBy: this.thenBy,
+          orderByKey: this.orderByKey,
+          thenByKey: this.thenByKey);
     }
   }
 
