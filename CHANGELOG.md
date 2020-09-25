@@ -1,3 +1,7 @@
+## [0.5.0] - Update README (2020.09.25)
+
+* Support for flutter_hooks and flutter_widget_model.
+
 ## [0.4.2] - Update README (2020.09.25)
 
 * Added a method of load that loads only once.
