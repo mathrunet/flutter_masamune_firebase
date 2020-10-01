@@ -1,5 +1,10 @@
 part of masamune.firebase;
 
+/// Get the Firestore Auth UserID.
+String get userId {
+  return FirestoreAuth.getUID();
+}
+
 /// Firebase / Firestore Authentication class.
 ///
 /// Basically, anonymous authentication is performed,

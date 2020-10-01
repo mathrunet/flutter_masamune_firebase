@@ -37,6 +37,7 @@ part of masamune.firebase;
 /// ```
 class FirestoreCollectionModel extends CollectionModel<FirestoreCollection> {
   final bool listenable;
+  final FirestoreQuery query;
 
   /// Data model with a data structure for firestore collections.
   ///
@@ -49,27 +50,38 @@ class FirestoreCollectionModel extends CollectionModel<FirestoreCollection> {
   /// If [listenable] is set to true, updates will be monitored.
   FirestoreCollectionModel(String path,
       {this.listenable = false,
+      this.query,
       OrderBy orderBy = OrderBy.none,
       String orderByKey,
       OrderBy thenBy = OrderBy.none,
       String thenByKey})
-      : super(path, orderBy, orderByKey, thenBy, thenByKey);
+      : super(
+            path: path,
+            orderBy: orderBy,
+            orderByKey: orderByKey,
+            thenBy: thenBy,
+            thenByKey: thenByKey);
   @override
-  FutureOr<FirestoreCollection> build(ModelContext context) async {
+  Future<IPath> createTask() async {
     if (this.listenable) {
       return FirestoreCollection.listen(this.path,
+          query: this.query,
           orderBy: this.orderBy,
           thenBy: this.thenBy,
           orderByKey: this.orderByKey,
           thenByKey: this.thenByKey);
     } else {
       return FirestoreCollection.load(this.path,
+          query: this.query,
           orderBy: this.orderBy,
           thenBy: this.thenBy,
           orderByKey: this.orderByKey,
           thenByKey: this.thenByKey);
     }
   }
+
+  @override
+  FirestoreCollection build() => PathMap.get<FirestoreCollection>(this.path);
 
   /// Add a new document to the collection.
   ///
