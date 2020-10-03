@@ -55,7 +55,7 @@ class FirestoreDocumentModel extends DocumentModel<FirestoreDocument> {
   FirestoreDocumentModel(String path, {this.listenable = false})
       : super(path: path);
   @override
-  Future<FirestoreDocument> createTask() async {
+  Future createTask() {
     if (this.listenable) {
       return FirestoreDocument.listen(this.path);
     } else {
@@ -64,7 +64,8 @@ class FirestoreDocumentModel extends DocumentModel<FirestoreDocument> {
   }
 
   @override
-  FirestoreDocument build() => PathMap.get<FirestoreDocument>(this.path);
+  FirestoreDocument build(ModelContext context) =>
+      PathMap.get<FirestoreDocument>(this.path);
 
   @override
   Future save(

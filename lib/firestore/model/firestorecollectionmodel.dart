@@ -62,26 +62,32 @@ class FirestoreCollectionModel extends CollectionModel<FirestoreCollection> {
             thenBy: thenBy,
             thenByKey: thenByKey);
   @override
-  Future<IPath> createTask() async {
+  Future createTask() {
     if (this.listenable) {
-      return FirestoreCollection.listen(this.path,
-          query: this.query,
-          orderBy: this.orderBy,
-          thenBy: this.thenBy,
-          orderByKey: this.orderByKey,
-          thenByKey: this.thenByKey);
+      return FirestoreCollection.listen(
+        this.path,
+        query: this.query,
+        orderBy: this.orderBy,
+        thenBy: this.thenBy,
+        orderByKey: this.orderByKey,
+        thenByKey: this.thenByKey,
+      );
     } else {
-      return FirestoreCollection.load(this.path,
-          query: this.query,
-          orderBy: this.orderBy,
-          thenBy: this.thenBy,
-          orderByKey: this.orderByKey,
-          thenByKey: this.thenByKey);
+      return FirestoreCollection.load(
+        this.path,
+        query: this.query,
+        orderBy: this.orderBy,
+        thenBy: this.thenBy,
+        orderByKey: this.orderByKey,
+        thenByKey: this.thenByKey,
+      );
     }
   }
 
   @override
-  FirestoreCollection build() => PathMap.get<FirestoreCollection>(this.path);
+  FirestoreCollection build(ModelContext context) {
+    return PathMap.get<FirestoreCollection>(this.path);
+  }
 
   /// Add a new document to the collection.
   ///
