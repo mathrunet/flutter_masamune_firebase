@@ -1,19 +1,19 @@
 part of masamune.firebase;
 
 class ChangeEmail extends UIPageChangeEmail {
-  /// Initial definition of the controller.
-  ///
-  /// [context]: Build context.
+  /// Default mail address.
+  @protected
   @override
-  Map<String, String> define(BuildContext context) {
-    return {"email": FirestoreAuth.getEmail()};
-  }
+  String get email => FirestoreAuth.getEmail();
 
   /// What happens when a form is submitted.
+  ///
+  /// [context]: Build context.
+  /// [form]: Form data.
   @override
-  void onSubmit(BuildContext context) async {
+  void onSubmit(BuildContext context, IDataDocument form) async {
     if (!this.validate(context)) return;
-    final auth = await FirestoreAuth.changeEmail(email: form["email"])
+    final auth = await EmailAndPasswordAuth.changeEmail(email: form["email"])
         .showIndicator(context);
     if (auth == null || auth.isError || auth.isAbort) {
       UIDialog.show(context,

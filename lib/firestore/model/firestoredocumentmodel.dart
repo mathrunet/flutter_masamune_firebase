@@ -71,7 +71,7 @@ class FirestoreDocumentModel extends DocumentModel<FirestoreDocument> {
   Future save(
       {Map<String, dynamic> data,
       void builder(FirestoreDocument document)}) async {
-    FirestoreDocument state = this.state;
+    FirestoreDocument state = await FirestoreDocument.listen(this.path);
     if (state == null || state.isDisposed) {
       state = FirestoreDocument.create(this.path);
     }

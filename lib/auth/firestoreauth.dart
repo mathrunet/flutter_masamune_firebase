@@ -183,6 +183,15 @@ class FirestoreAuth extends Auth {
     return auth._link?.displayName;
   }
 
+  /// Reload the user data.
+  ///
+  /// [protorol]: Protocol specification.
+  static Future reload({String protocol}) async {
+    FirestoreAuth auth = FirestoreAuth(protocol);
+    if (auth == null) return Future.delayed(Duration.zero);
+    await auth._link?.reload();
+  }
+
   /// Process sign-in.
   /// Basically, anonymous authentication is performed,
   /// followed by a flow linking a specific authentication method.
@@ -347,6 +356,7 @@ class FirestoreAuth extends Auth {
       }
       await this._auth.setLanguageCode(locale ?? Localize.locale);
       await this._link.updateEmail(email);
+      this._link = await this._auth.currentUser();
       this.done();
     } on TimeoutException catch (e) {
       this.timeout(e.toString());
@@ -399,6 +409,7 @@ class FirestoreAuth extends Auth {
       }
       await this._auth.setLanguageCode(locale ?? Localize.locale);
       await this._link.updatePassword(password);
+      this._link = await this._auth.currentUser();
       this.done();
     } on TimeoutException catch (e) {
       this.timeout(e.toString());

@@ -2,8 +2,11 @@ part of masamune.firebase;
 
 class ChangePassword extends UIPageChangePassword {
   /// What happens when a form is submitted.
+  ///
+  /// [context]: Build context.
+  /// [form]: Form data.
   @override
-  void onSubmit(BuildContext context) async {
+  void onSubmit(BuildContext context, IDataDocument form) async {
     if (!this.validate(context)) return;
     if (form["password"] != form["confirmation"]) {
       UIDialog.show(context,
@@ -13,8 +16,9 @@ class ChangePassword extends UIPageChangePassword {
           onSubmit: () {});
       return;
     }
-    final auth = await FirestoreAuth.changePassword(password: form["password"])
-        .showIndicator(context);
+    final auth =
+        await EmailAndPasswordAuth.changePassword(password: form["password"])
+            .showIndicator(context);
     if (auth == null || auth.isError || auth.isAbort) {
       UIDialog.show(context,
           title: "Error".localize(),
