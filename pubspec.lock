@@ -302,7 +302,7 @@ packages:
       name: flutter_widget_model
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.5.1+8"
+    version: "0.5.1+15"
   http:
     dependency: "direct main"
     description:
@@ -344,14 +344,14 @@ packages:
       name: masamune_core
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.5.0+8"
+    version: "0.5.0+11"
   masamune_flutter:
     dependency: "direct main"
     description:
       name: masamune_flutter
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.5.1+6"
+    version: "0.5.1+15"
   masamune_localize:
     dependency: "direct main"
     description:

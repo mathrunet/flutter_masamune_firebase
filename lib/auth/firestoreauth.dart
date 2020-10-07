@@ -5,6 +5,16 @@ String get userId {
   return FirestoreAuth.getUID();
 }
 
+/// Get the Firestore Auth user mail address.
+String get userEmail {
+  return FirestoreAuth.getEmail();
+}
+
+/// If you are logged in anonymously, True.
+bool get isAnonymously {
+  return FirestoreAuth.isAnonymously();
+}
+
 /// Firebase / Firestore Authentication class.
 ///
 /// Basically, anonymous authentication is performed,
@@ -181,6 +191,15 @@ class FirestoreAuth extends Auth {
     FirestoreAuth auth = FirestoreAuth(protocol);
     if (auth == null) return null;
     return auth._link?.displayName;
+  }
+
+  /// For anonymous logged in users, True.
+  ///
+  /// [protorol]: Protocol specification.
+  static bool isAnonymously({String protocol}) {
+    FirestoreAuth auth = FirestoreAuth(protocol);
+    if (auth == null) return false;
+    return auth._link?.isAnonymous ?? false;
   }
 
   /// Reload the user data.

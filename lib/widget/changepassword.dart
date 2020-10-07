@@ -8,14 +8,6 @@ class ChangePassword extends UIPageChangePassword {
   @override
   void onSubmit(BuildContext context, IDataDocument form) async {
     if (!this.validate(context)) return;
-    if (form["password"] != form["confirmation"]) {
-      UIDialog.show(context,
-          title: "Error".localize(),
-          text: "Passwords do not match.".localize(),
-          submitText: "OK".localize(),
-          onSubmit: () {});
-      return;
-    }
     final auth =
         await EmailAndPasswordAuth.changePassword(password: form["password"])
             .showIndicator(context);

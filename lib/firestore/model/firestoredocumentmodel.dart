@@ -55,7 +55,7 @@ class FirestoreDocumentModel extends DocumentModel<FirestoreDocument> {
   FirestoreDocumentModel(String path, {this.listenable = false})
       : super(path: path);
   @override
-  Future createTask() {
+  Future<FirestoreDocument> createTask(ModelContext context) {
     if (this.listenable) {
       return FirestoreDocument.listen(this.path);
     } else {
