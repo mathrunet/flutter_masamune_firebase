@@ -55,15 +55,14 @@ class FirestoreCollectionModel extends CollectionModel<FirestoreCollection> {
       String orderByKey,
       OrderBy thenBy = OrderBy.none,
       String thenByKey})
-      : super(
-            path: path,
+      : super(path,
             orderBy: orderBy,
             orderByKey: orderByKey,
             thenBy: thenBy,
             thenByKey: thenByKey);
 
   @override
-  Future<FirestoreCollection> createTask(ModelContext context) {
+  Future<FirestoreCollection> build(ModelContext context) {
     if (this.listenable) {
       return FirestoreCollection.listen(
         this.path,
@@ -84,10 +83,6 @@ class FirestoreCollectionModel extends CollectionModel<FirestoreCollection> {
       );
     }
   }
-
-  @override
-  FirestoreCollection build(ModelContext context) =>
-      PathMap.get<FirestoreCollection>(this.path);
 
   /// Add a new document to the collection.
   ///

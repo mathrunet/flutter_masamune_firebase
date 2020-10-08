@@ -52,10 +52,9 @@ class FirestoreDocumentModel extends DocumentModel<FirestoreDocument> {
   /// Defines the data document of the specified [path].
   ///
   /// If [listenable] is set to true, updates will be monitored.
-  FirestoreDocumentModel(String path, {this.listenable = false})
-      : super(path: path);
+  FirestoreDocumentModel(String path, {this.listenable = false}) : super(path);
   @override
-  Future<FirestoreDocument> createTask(ModelContext context) {
+  Future<FirestoreDocument> build(ModelContext context) {
     if (this.listenable) {
       return FirestoreDocument.listen(this.path);
     } else {
@@ -63,12 +62,7 @@ class FirestoreDocumentModel extends DocumentModel<FirestoreDocument> {
     }
   }
 
-  @override
-  FirestoreDocument build(ModelContext context) =>
-      PathMap.get<FirestoreDocument>(this.path);
-
-  @override
-  Future save(
+  Future saveAll(
       {Map<String, dynamic> data,
       void builder(FirestoreDocument document)}) async {
     FirestoreDocument state = await FirestoreDocument.listen(this.path);
