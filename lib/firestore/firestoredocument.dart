@@ -451,7 +451,8 @@ class FirestoreDocument extends TaskDocument<DataField>
   ///
   /// Use the [isUpdating] flag if you want to check if it is updating.
   @override
-  Future<T> save<T extends IDataDocument>() {
+  Future<T> save<T extends IDataDocument>(
+      {Map<String, dynamic> data, void builder(T document)}) {
     if (this.isDisposed) return this.future;
     assert(this._app != null);
     assert(this._auth != null);
@@ -460,6 +461,8 @@ class FirestoreDocument extends TaskDocument<DataField>
           "Please execute after completing initialization and authentication.");
       return this.future;
     }
+    data?.forEach((key, value) => this[key] = value);
+    builder?.call(this as T);
     this.init();
     this.registerUntemporary();
     this._isUpdating = true;
