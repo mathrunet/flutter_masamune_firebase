@@ -2,8 +2,8 @@ part of masamune.firebase;
 
 /// Class for managing Firebase applications.
 ///
-/// Please initialize with [Firebase.initialize()] or [Firebase.configure()] when launching the app.
-class Firebase extends TaskUnit {
+/// Please initialize with [FirebaseCore.initialize()] or [FirebaseCore.configure()] when launching the app.
+class FirebaseCore extends TaskUnit {
   /// Get server timestamp.
   static FieldValue get serverTimestamp => FieldValue.serverTimestamp();
 
@@ -12,7 +12,7 @@ class Firebase extends TaskUnit {
   /// Do not use from external class.
   @override
   @protected
-  Completer createCompleter() => Completer<Firebase>();
+  Completer createCompleter() => Completer<FirebaseCore>();
 
   /// Process to create a new instance.
   ///
@@ -23,17 +23,21 @@ class Firebase extends TaskUnit {
   @override
   @protected
   T createInstance<T extends IClonable>(String path, bool isTemporary) =>
-      Firebase._(path: path) as T;
+      FirebaseCore._(path: path) as T;
   Timer _timer;
 
   /// Firebase application.
-  FirebaseApp get app => this._app;
+  FirebaseApp get app {
+    if (this._app == null) this._app = Firebase.app();
+    return this._app;
+  }
+
   FirebaseApp _app;
 
   /// Firebase options.
   FirebaseOptions get options => this._options;
   FirebaseOptions _options;
-  Firestore _db;
+  FirebaseFirestore _db;
   Map<String, Set<FirestoreCollection>> _parentList = MapPool.get();
   List<FirestoreDocument> _updateStack = ListPool.get();
   void _startUpdate() {
@@ -94,12 +98,12 @@ class Firebase extends TaskUnit {
   /// Search for an instance of Firebase from [protocol].
   ///
   /// [protocol]: Protocol.
-  factory Firebase([String protocol]) {
+  factory FirebaseCore([String protocol]) {
     if (isEmpty(protocol)) protocol = "firestore";
     String path = Texts.format(_systemPath, [protocol]);
-    Firebase unit = PathMap.get<Firebase>(path);
+    FirebaseCore unit = PathMap.get<FirebaseCore>(path);
     if (unit != null) return unit;
-    unit = PathMap.get<Firebase>(Texts.format(_systemPath, [Const.empty]));
+    unit = PathMap.get<FirebaseCore>(Texts.format(_systemPath, [Const.empty]));
     if (unit != null) return unit;
     Log.warning(
         "No data was found from the pathmap. First you need to do like [initialize()].");
@@ -131,8 +135,8 @@ class Firebase extends TaskUnit {
   /// Use the settings in the default app [google-services.json] or [GoogleService-Info.plist].
   ///
   /// [timeout]: Timeout time.
-  static Future<Firebase> initialize({Duration timeout = Const.timeout}) =>
-      Firebase.configure(timeout: timeout);
+  static Future<FirebaseCore> initialize({Duration timeout = Const.timeout}) =>
+      FirebaseCore.configure(timeout: timeout);
 
   /// Class for managing Firebase applications.
   ///
@@ -143,20 +147,20 @@ class Firebase extends TaskUnit {
   /// [protocol]: Firebase name.
   /// [options]: Firebase startup options.
   /// [timeout]: Timeout time.
-  static Future<Firebase> configure(
+  static Future<FirebaseCore> configure(
       {String protocol,
       FirebaseOptions options,
       Duration timeout = Const.timeout}) {
     if (isEmpty(protocol)) protocol = "firestore";
     String path = Texts.format(_systemPath, [protocol]);
-    Firebase unit = PathMap.get<Firebase>(path);
+    FirebaseCore unit = PathMap.get<FirebaseCore>(path);
     if (unit != null) return unit.future;
-    unit = Firebase._(path: path);
+    unit = FirebaseCore._(path: path);
     unit._createDatabaseProcess(protocol, options, timeout);
     return unit.future;
   }
 
-  Firebase._({String path}) : super(path: path, group: -1);
+  FirebaseCore._({String path}) : super(path: path, group: -1);
   void _createDatabaseProcess(
       String protocol, FirebaseOptions options, Duration timeout) async {
     try {
@@ -164,20 +168,20 @@ class Firebase extends TaskUnit {
           isEmpty(options) ||
           protocol == Protocol.system ||
           protocol == "firestore") {
-        this._app = FirebaseApp.instance;
-        this._db = Firestore(app: this._app)
-          ..settings(persistenceEnabled: true);
+        this._app = await Firebase.initializeApp();
+        this._db = FirebaseFirestore.instanceFor(app: this._app)
+          ..settings = Settings(persistenceEnabled: true);
       } else {
         this._app =
-            await FirebaseApp.configure(name: protocol, options: options)
+            await Firebase.initializeApp(name: protocol, options: options)
                 .timeout(timeout);
-        this._db = Firestore(app: this._app)
-          ..settings(persistenceEnabled: true);
+        this._db = FirebaseFirestore.instanceFor(app: this._app)
+          ..settings = Settings(persistenceEnabled: true);
       }
       if (this._app == null || this._db == null) {
         this.error("FirebaseApp is not found.");
       } else {
-        this._options = await this._app.options;
+        this._options = this._app.options;
         this._startUpdate();
         this.done();
       }

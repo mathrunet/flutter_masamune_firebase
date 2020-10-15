@@ -64,12 +64,12 @@ class SearchableFirestoreCollection extends TaskCollection<FirestoreDocument>
           thenBy: this.thenBy,
           orderByKey: this.orderByKey,
           thenByKey: this.thenByKey) as T;
-  Firebase get _app {
-    if (this.__app == null) this.__app = Firebase(this.protocol);
+  FirebaseCore get _app {
+    if (this.__app == null) this.__app = FirebaseCore(this.protocol);
     return this.__app;
   }
 
-  Firebase __app;
+  FirebaseCore __app;
   FirestoreAuth get _auth {
     if (this.__auth == null) this.__auth = FirestoreAuth(this.protocol);
     return this.__auth;
@@ -349,8 +349,8 @@ class SearchableFirestoreCollection extends TaskCollection<FirestoreDocument>
   /// The next data is acquired by [next()].
   bool canNext() {
     return this._listener.length > 0 &&
-        this._listener.last?.snapshot?.documents != null &&
-        this._listener.last.snapshot.documents.length >= this.limit;
+        this._listener.last?.snapshot?.docs != null &&
+        this._listener.last.snapshot.docs.length >= this.limit;
   }
 
   void _constructListener() async {
@@ -360,7 +360,7 @@ class SearchableFirestoreCollection extends TaskCollection<FirestoreDocument>
         await Future.wait(this._listener.map((e) => e?.listener?.cancel()));
         this._listener.clear();
       }
-      if (this._app == null) this.__app = await Firebase.initialize();
+      if (this._app == null) this.__app = await FirebaseCore.initialize();
       if (this._auth == null)
         this.__auth = await FirestoreAuth.signIn(protocol: this.protocol);
       _FirestoreCollectionListener listener = _FirestoreCollectionListener();
@@ -370,20 +370,18 @@ class SearchableFirestoreCollection extends TaskCollection<FirestoreDocument>
           listener.reference.snapshots().listen((snapshot) async {
         if (!this._isUpdatable) return;
         listener.snapshot = snapshot;
-        listener.removed = snapshot.documentChanges.mapAndRemoveEmpty((item) =>
-            item?.type == DocumentChangeType.removed
-                ? item?.document?.documentID
-                : null);
+        listener.removed = snapshot.docChanges.mapAndRemoveEmpty((item) =>
+            item?.type == DocumentChangeType.removed ? item?.doc?.id : null);
         Timestamp updatedTime;
         Map<String, Map<String, dynamic>> data = MapPool.get();
         DocumentSnapshot prev = listener.last;
-        for (DocumentSnapshot doc in snapshot.documents) {
+        for (DocumentSnapshot doc in snapshot.docs) {
           if (doc == null || !doc.exists) continue;
-          data[doc.documentID] = doc.data;
-          if (doc.data.containsKey(Const.time)) {
+          data[doc.id] = doc.data();
+          if (doc.data().containsKey(Const.time)) {
             if (updatedTime == null ||
-                updatedTime.compareTo(doc.data[Const.time]) < 0)
-              updatedTime = doc.data[Const.time];
+                updatedTime.compareTo(doc.data()[Const.time]) < 0)
+              updatedTime = doc.data()[Const.time];
           }
           listener.last = doc;
         }
@@ -411,12 +409,12 @@ class SearchableFirestoreCollection extends TaskCollection<FirestoreDocument>
         return;
       }
       _FirestoreCollectionListener last = this._listener.last;
-      if (this.limit < 0 || last.snapshot.documents.length < this.limit) {
+      if (this.limit < 0 || last.snapshot.docs.length < this.limit) {
         this._isSearching = false;
         this.done();
         return;
       }
-      if (this._app == null) this.__app = await Firebase.initialize();
+      if (this._app == null) this.__app = await FirebaseCore.initialize();
       if (this._auth == null)
         this.__auth = await FirestoreAuth.signIn(protocol: this.protocol);
       _FirestoreCollectionListener listener = _FirestoreCollectionListener();
@@ -428,20 +426,18 @@ class SearchableFirestoreCollection extends TaskCollection<FirestoreDocument>
           listener.reference.snapshots().listen((snapshot) async {
         if (!this._isUpdatable) return;
         listener.snapshot = snapshot;
-        listener.removed = snapshot.documentChanges.mapAndRemoveEmpty((item) =>
-            item?.type == DocumentChangeType.removed
-                ? item?.document?.documentID
-                : null);
+        listener.removed = snapshot.docChanges.mapAndRemoveEmpty((item) =>
+            item?.type == DocumentChangeType.removed ? item?.doc?.id : null);
         Timestamp updatedTime;
         Map<String, Map<String, dynamic>> data = MapPool.get();
         DocumentSnapshot prev = listener.last;
-        for (DocumentSnapshot doc in snapshot.documents) {
+        for (DocumentSnapshot doc in snapshot.docs) {
           if (doc == null || !doc.exists) continue;
-          data[doc.documentID] = doc.data;
-          if (doc.data.containsKey(Const.time)) {
+          data[doc.id] = doc.data();
+          if (doc.data().containsKey(Const.time)) {
             if (updatedTime == null ||
-                updatedTime.compareTo(doc.data[Const.time]) < 0)
-              updatedTime = doc.data[Const.time];
+                updatedTime.compareTo(doc.data()[Const.time]) < 0)
+              updatedTime = doc.data()[Const.time];
           }
           listener.last = doc;
         }
@@ -466,7 +462,7 @@ class SearchableFirestoreCollection extends TaskCollection<FirestoreDocument>
       if (index < 0 || this._listener.length <= index) return;
       _FirestoreCollectionListener listener = this._listener[index];
       if (listener == null) return;
-      if (this._app == null) this.__app = await Firebase.initialize();
+      if (this._app == null) this.__app = await FirebaseCore.initialize();
       if (this._auth == null)
         this.__auth = await FirestoreAuth.signIn(protocol: this.protocol);
       await listener.reset();
@@ -479,19 +475,17 @@ class SearchableFirestoreCollection extends TaskCollection<FirestoreDocument>
           listener.reference.snapshots().listen((snapshot) async {
         if (!this._isUpdatable) return;
         listener.snapshot = snapshot;
-        listener.removed = snapshot.documentChanges.mapAndRemoveEmpty((item) =>
-            item?.type == DocumentChangeType.removed
-                ? item?.document?.documentID
-                : null);
+        listener.removed = snapshot.docChanges.mapAndRemoveEmpty((item) =>
+            item?.type == DocumentChangeType.removed ? item?.doc?.id : null);
         Timestamp updatedTime;
         Map<String, Map<String, dynamic>> data = MapPool.get();
-        for (DocumentSnapshot doc in snapshot.documents) {
+        for (DocumentSnapshot doc in snapshot.docs) {
           if (doc == null || !doc.exists) continue;
-          data[doc.documentID] = doc.data;
-          if (doc.data.containsKey(Const.time)) {
+          data[doc.id] = doc.data();
+          if (doc.data().containsKey(Const.time)) {
             if (updatedTime == null ||
-                updatedTime.compareTo(doc.data[Const.time]) < 0)
-              updatedTime = doc.data[Const.time];
+                updatedTime.compareTo(doc.data()[Const.time]) < 0)
+              updatedTime = doc.data()[Const.time];
           }
           listener.last = doc;
         }

@@ -44,10 +44,10 @@ class FirestoreMeta {
           if (document.containsKey("time") &&
               document.containsKey("@time") &&
               document["time"] != document["@time"]) return;
-          num count = collection?.documents?.fold(
+          num count = collection?.docs?.fold(
                   0,
                   (previousValue, element) =>
-                      previousValue + (element?.data["value"] ?? 0)) ??
+                      previousValue + (element?.data()["value"] ?? 0)) ??
               0;
           document[tmp] = count;
         });

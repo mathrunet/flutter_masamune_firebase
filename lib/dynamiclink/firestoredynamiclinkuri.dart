@@ -29,12 +29,12 @@ class FirestoreDynamicLinkURI extends Task<Uri> implements ITask {
           isTemporary: isTemporary,
           group: this.group,
           order: this.order) as T;
-  Firebase get _app {
-    if (this.__app == null) this.__app = Firebase(this.protocol);
+  FirebaseCore get _app {
+    if (this.__app == null) this.__app = FirebaseCore(this.protocol);
     return this.__app;
   }
 
-  Firebase __app;
+  FirebaseCore __app;
   FirebaseDynamicLinks get _dynamicLink {
     if (this.__dynamicLink == null)
       this.__dynamicLink = FirebaseDynamicLinks.instance;
@@ -138,7 +138,7 @@ class FirestoreDynamicLinkURI extends Task<Uri> implements ITask {
       String socialImageURL,
       String socialTitle}) async {
     try {
-      if (this._app == null) this.__app = await Firebase.initialize();
+      if (this._app == null) this.__app = await FirebaseCore.initialize();
       if (Config.isWeb) {
         Response res = await post(Texts.format(restAPIURL, [webAPIKey]),
             headers: {HttpHeaders.contentTypeHeader: "application/json"},

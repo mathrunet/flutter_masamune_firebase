@@ -37,12 +37,12 @@ class FirestoreDocument extends TaskDocument<DataField>
           isTemporary: isTemporary,
           group: this.group,
           order: this.order) as T;
-  Firebase get _app {
-    if (this.__app == null) this.__app = Firebase(this.protocol);
+  FirebaseCore get _app {
+    if (this.__app == null) this.__app = FirebaseCore(this.protocol);
     return this.__app;
   }
 
-  Firebase __app;
+  FirebaseCore __app;
   FirestoreAuth get _auth {
     if (this.__auth == null) this.__auth = FirestoreAuth(this.protocol);
     return this.__auth;
@@ -53,12 +53,13 @@ class FirestoreDocument extends TaskDocument<DataField>
     if (this.__reference == null &&
         this.rawPath != null &&
         isNotEmpty(this.rawPath.path)) {
-      this.__reference = this._app._db.document(this.rawPath.path);
+      this.__reference = this._app._db.doc(this.rawPath.path);
     }
     return this.__reference;
   }
 
   DocumentReference __reference;
+  // ignore: cancel_subscriptions
   StreamSubscription<DocumentSnapshot> _listener;
   Map<String, StreamSubscription> _subListener = MapPool.get();
 
@@ -385,23 +386,23 @@ class FirestoreDocument extends TaskDocument<DataField>
         await this._listener.cancel();
         this._listener = null;
       }
-      if (this._app == null) this.__app = await Firebase.initialize();
+      if (this._app == null) this.__app = await FirebaseCore.initialize();
       if (this._isRequireAuth && this._auth == null)
         this.__auth = await FirestoreAuth.signIn(protocol: this.protocol);
-      this.__reference = this._app._db.document(this.rawPath.path);
+      this.__reference = this._app._db.doc(this.rawPath.path);
       this._listener = this._reference.snapshots().listen((snapshot) async {
         if (!this.isUpdatable) return;
         if (snapshot == null ||
             !snapshot.exists ||
-            snapshot.data == null ||
-            snapshot.data.length <= 0) {
+            snapshot.data() == null ||
+            snapshot.data().length <= 0) {
           this.done();
           this.dispose();
         } else {
           this._done(
-              snapshot.exists ? snapshot.data : MapPool.get(),
-              (snapshot.data?.containsKey(Const.time) ?? false)
-                  ? (snapshot.data[Const.time] as Timestamp)
+              snapshot.exists ? snapshot.data() : MapPool.get(),
+              (snapshot.data()?.containsKey(Const.time) ?? false)
+                  ? (snapshot.data()[Const.time] as Timestamp)
                       .millisecondsSinceEpoch
                   : DateTime.now().frameMillisecondsSinceEpoch);
         }
@@ -467,7 +468,7 @@ class FirestoreDocument extends TaskDocument<DataField>
     this.registerUntemporary();
     this._isUpdating = true;
     this[Const.uid] = this.id;
-    this[Const.time] = Firebase.serverTimestamp;
+    this[Const.time] = FirebaseCore.serverTimestamp;
     this[FirestoreMeta.localeKey] = Localize.language;
     this
         ._app
@@ -488,7 +489,7 @@ class FirestoreDocument extends TaskDocument<DataField>
         return;
       }
       if (this._isDelete && this.isDisposed) {
-        await transaction.delete(this._reference);
+        transaction.delete(this._reference);
       } else {
         Map<String, dynamic> dic = MapPool.get();
         List<String> ignore = this.data[FirestoreMeta.ignoreKey]?.getList(null);
@@ -500,20 +501,20 @@ class FirestoreDocument extends TaskDocument<DataField>
             if (ignore != null && ignore.contains(key)) return;
             dic[key] = value?.rawData;
           });
-          await transaction.set(this._reference, dic);
+          transaction.set(this._reference, dic);
         } else {
           this.data.forEach((key, value) {
             if (isEmpty(key)) return;
             if (key.contains(Const.atmark) ||
                 (ignore != null && ignore.contains(key))) {
-              if (snapshot.data.containsKey(key)) {
-                dic[key] = snapshot.data[key];
+              if (snapshot.data().containsKey(key)) {
+                dic[key] = snapshot.data()[key];
               }
               return;
             }
             dic[key] = value?.rawData;
           });
-          await transaction.set(this._reference, dic);
+          transaction.set(this._reference, dic);
         }
         dic.release();
         this.done();

@@ -26,6 +26,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:masamune_flutter/masamune_flutter.dart';
 export 'package:masamune_flutter/masamune_flutter.dart';
+import 'package:geoflutterfire/geoflutterfire.dart';
 
 part 'config/appconfigdocument.dart';
 part 'config/remoteconfigdocument.dart';
@@ -39,7 +40,7 @@ part 'core/firestorecollectionlistener.dart';
 part 'core/firestorequery.dart';
 part 'core/firestoremeta.dart';
 
-part 'firebase/firebase.dart';
+part 'firebase/firebasecore.dart';
 
 part 'firestore/ifirestorecollectionlistener.dart';
 part 'firestore/firestoredocument.dart';

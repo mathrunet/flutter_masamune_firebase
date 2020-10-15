@@ -106,7 +106,7 @@ class RemoteConfigDocument extends FirestoreDocument {
   @override
   void _constructListener() async {
     try {
-      if (this._app == null) this.__app = await Firebase.initialize();
+      if (this._app == null) this.__app = await FirebaseCore.initialize();
       if (_config == null) __config = await RemoteConfig.instance;
       _config
           .setConfigSettings(RemoteConfigSettings(debugMode: Log.isDebugBuild));

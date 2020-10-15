@@ -29,12 +29,12 @@ class FirestoreStorage extends TaskUnit {
           storageBucket: this.storageBucket,
           group: this.group,
           order: this.order) as T;
-  Firebase get _app {
-    if (this.__app == null) this.__app = Firebase(this.protocol);
+  FirebaseCore get _app {
+    if (this.__app == null) this.__app = FirebaseCore(this.protocol);
     return this.__app;
   }
 
-  Firebase __app;
+  FirebaseCore __app;
   FirestoreAuth get _auth {
     if (this.__auth == null) this.__auth = FirestoreAuth(this.protocol);
     return this.__auth;
@@ -189,7 +189,7 @@ class FirestoreStorage extends TaskUnit {
 
   Future _download(String cachePath, Duration timeout) async {
     try {
-      if (this._app == null) this.__app = await Firebase.initialize();
+      if (this._app == null) this.__app = await FirebaseCore.initialize();
       if (this._auth == null)
         this.__auth = await FirestoreAuth.signIn(protocol: this.protocol);
       if (this._app == null || this._auth == null) {
@@ -244,7 +244,7 @@ class FirestoreStorage extends TaskUnit {
 
   Future _upload(File file, Duration timeout) async {
     try {
-      if (this._app == null) this.__app = await Firebase.initialize();
+      if (this._app == null) this.__app = await FirebaseCore.initialize();
       if (this._auth == null)
         this.__auth = await FirestoreAuth.signIn(protocol: this.protocol);
       if (this._app == null || this._auth == null) {

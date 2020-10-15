@@ -39,28 +39,28 @@ class FirestoreAuth extends Auth {
   @protected
   T createInstance<T extends IClonable>(String path, bool isTemporary) =>
       FirestoreAuth._(path) as T;
-  Firebase get _app {
-    if (this.__app == null) this.__app = Firebase(this.protocol);
+  FirebaseCore get _app {
+    if (this.__app == null) this.__app = FirebaseCore(this.protocol);
     return this.__app;
   }
 
-  Firebase __app;
+  FirebaseCore __app;
   FirebaseAuth get _auth {
-    if (this.__auth == null) this.__auth = FirebaseAuth.fromApp(this._app.app);
+    if (this.__auth == null)
+      this.__auth = FirebaseAuth.instanceFor(app: this._app.app);
     return this.__auth;
   }
 
   FirebaseAuth __auth;
-  FirebaseUser _link;
+  User _link;
 
   /// Callback when authentication is complete.
   ///
   /// [onAuthorized]: Callback when authentication is complete.
   static void onAuthorized(
-          Future onAuthorized(
-              FirestoreAuth auth, FirebaseUser user, String uid)) =>
+          Future onAuthorized(FirestoreAuth auth, User user, String uid)) =>
       _onAuthorized = onAuthorized;
-  static Future Function(FirestoreAuth auth, FirebaseUser user, String uid)
+  static Future Function(FirestoreAuth auth, User user, String uid)
       _onAuthorized;
 
   /// Search for an instance of FirestoreAuth from [protocol].
@@ -87,7 +87,9 @@ class FirestoreAuth extends Auth {
     _twitterAPISecret = twitterAPISecret;
   }
 
+  // ignore: unused_field
   static String _twitterAPIKey;
+  // ignore: unused_field
   static String _twitterAPISecret;
 
   /// Check if you are logged in.
@@ -111,10 +113,10 @@ class FirestoreAuth extends Auth {
 
   Future<bool> _tryRestoreAuth(Duration timeout, bool retryWhenTimeout) async {
     if (this._app == null)
-      this.__app = await Firebase.initialize(timeout: timeout);
+      this.__app = await FirebaseCore.initialize(timeout: timeout);
     if (this._auth == null) return false;
     try {
-      FirebaseUser user = await this._auth.currentUser().timeout(timeout);
+      User user = this._auth.currentUser;
       if (user != null) {
         await user.reload().timeout(timeout);
         this._link = user;
@@ -179,7 +181,7 @@ class FirestoreAuth extends Auth {
   static String getPhoto({String protocol}) {
     FirestoreAuth auth = FirestoreAuth(protocol);
     if (auth == null) return null;
-    return auth._link?.photoUrl;
+    return auth._link?.photoURL;
   }
 
   /// You can get the Display Name after authentication is completed.
@@ -268,7 +270,7 @@ class FirestoreAuth extends Auth {
     try {
       this.init();
       if (this._app == null)
-        this.__app = await Firebase.initialize(timeout: timeout);
+        this.__app = await FirebaseCore.initialize(timeout: timeout);
       if (this._auth == null) {
         this.error("Firebase auth is not found.");
         return;
@@ -315,13 +317,13 @@ class FirestoreAuth extends Auth {
     try {
       this.init();
       if (this._app == null)
-        this.__app = await Firebase.initialize(timeout: timeout);
+        this.__app = await FirebaseCore.initialize(timeout: timeout);
       if (this._auth == null) {
         this.error("Firebase auth is not found.");
         return;
       }
       await this._link.reauthenticateWithCredential(
-          EmailAuthProvider.getCredential(
+          EmailAuthProvider.credential(
               email: this._link.email, password: password));
       this.done();
     } on TimeoutException catch (e) {
@@ -368,14 +370,14 @@ class FirestoreAuth extends Auth {
     try {
       this.init();
       if (this._app == null)
-        this.__app = await Firebase.initialize(timeout: timeout);
+        this.__app = await FirebaseCore.initialize(timeout: timeout);
       if (this._auth == null) {
         this.error("Firebase auth is not found.");
         return;
       }
       await this._auth.setLanguageCode(locale ?? Localize.locale);
       await this._link.updateEmail(email);
-      this._link = await this._auth.currentUser();
+      this._link = this._auth.currentUser;
       this.done();
     } on TimeoutException catch (e) {
       this.timeout(e.toString());
@@ -421,14 +423,14 @@ class FirestoreAuth extends Auth {
     try {
       this.init();
       if (this._app == null)
-        this.__app = await Firebase.initialize(timeout: timeout);
+        this.__app = await FirebaseCore.initialize(timeout: timeout);
       if (this._auth == null) {
         this.error("Firebase auth is not found.");
         return;
       }
       await this._auth.setLanguageCode(locale ?? Localize.locale);
       await this._link.updatePassword(password);
-      this._link = await this._auth.currentUser();
+      this._link = this._auth.currentUser;
       this.done();
     } on TimeoutException catch (e) {
       this.timeout(e.toString());
@@ -461,7 +463,7 @@ class FirestoreAuth extends Auth {
     try {
       this.init();
       if (this._app == null)
-        this.__app = await Firebase.initialize(timeout: timeout);
+        this.__app = await FirebaseCore.initialize(timeout: timeout);
       if (this._auth == null) {
         this.error("Firebase auth is not found.");
         return;
@@ -508,7 +510,7 @@ class FirestoreAuth extends Auth {
       String email, String locale, Duration timeout) async {
     try {
       if (this._app == null)
-        this.__app = await Firebase.initialize(timeout: timeout);
+        this.__app = await FirebaseCore.initialize(timeout: timeout);
       if (this._auth == null) {
         this.error("Firebase auth is not found.");
         return;
@@ -564,13 +566,13 @@ class FirestoreAuth extends Auth {
       String email, String link, String locale, Duration timeout) async {
     try {
       await this._prepareProcessInternal(timeout);
-      if (!await this._auth.isSignInWithEmailLink(link)) {
+      if (!this._auth.isSignInWithEmailLink(link)) {
         this.error("This email link is invalid.");
         return;
       }
       await this._auth.setLanguageCode(locale ?? Localize.locale);
       AuthCredential credential =
-          EmailAuthProvider.getCredentialWithLink(email: email, link: link);
+          EmailAuthProvider.credentialWithLink(email: email, emailLink: link);
       if (this._link != null) {
         this._link =
             (await this._link.linkWithCredential(credential).timeout(timeout))
@@ -647,19 +649,20 @@ class FirestoreAuth extends Auth {
       await this._prepareProcessInternal(timeout);
       if (this._link != null &&
           this._link.providerData.any(
-              (t) => t.providerId?.contains(EmailAuthProvider.providerId))) {
+              (t) => t.providerId?.contains(EmailAuthProvider.PROVIDER_ID))) {
         this.error("This user is already linked to a Email account.");
         return;
       }
       await this._auth.setLanguageCode(locale ?? Localize.locale);
-      await this._auth.sendSignInWithEmailLink(
+      await this._auth.sendSignInLinkToEmail(
           email: email,
-          url: url,
-          handleCodeInApp: true,
-          iOSBundleID: packageName,
-          androidPackageName: packageName,
-          androidInstallIfNotAvailable: true,
-          androidMinimumVersion: androidMinimumVersion.toString());
+          actionCodeSettings: ActionCodeSettings(
+              androidInstallApp: true,
+              url: url,
+              handleCodeInApp: true,
+              iOSBundleId: packageName,
+              androidPackageName: packageName,
+              androidMinimumVersion: androidMinimumVersion.toString()));
       Prefs.set("FirestoreSignInEmail".toSHA256(_hashKey), email);
       this.done();
     } on TimeoutException catch (e) {
@@ -703,7 +706,7 @@ class FirestoreAuth extends Auth {
       await this._prepareProcessInternal(timeout);
       if (this._link != null &&
           this._link.providerData.any(
-              (t) => t.providerId?.contains(PhoneAuthProvider.providerId))) {
+              (t) => t.providerId?.contains(PhoneAuthProvider.PROVIDER_ID))) {
         this.error("This user is already linked to a Phone number account.");
         return;
       }
@@ -789,7 +792,7 @@ class FirestoreAuth extends Auth {
       if (this._link != null) {
         this._link = (await this
                 ._link
-                .linkWithCredential(EmailAuthProvider.getCredential(
+                .linkWithCredential(EmailAuthProvider.credential(
                     email: email, password: password))
                 .timeout(timeout))
             .user;
@@ -852,7 +855,7 @@ class FirestoreAuth extends Auth {
     try {
       await this._prepareProcessInternal(timeout);
       AuthCredential credential =
-          EmailAuthProvider.getCredential(email: email, password: password);
+          EmailAuthProvider.credential(email: email, password: password);
       if (this._link != null) {
         this._link =
             (await this._link.linkWithCredential(credential).timeout(timeout))
@@ -975,7 +978,7 @@ class FirestoreAuth extends Auth {
 
   Future _prepareProcessInternal(Duration timeout) async {
     if (this._app == null)
-      this.__app = await Firebase.initialize(timeout: timeout);
+      this.__app = await FirebaseCore.initialize(timeout: timeout);
     if (this._app == null) {
       this.error("Firebase app is not found.");
       return;
@@ -985,7 +988,7 @@ class FirestoreAuth extends Auth {
       return;
     }
     try {
-      FirebaseUser user = await this._auth.currentUser().timeout(timeout);
+      User user = this._auth.currentUser;
       if (user != null) {
         await user.reload().timeout(timeout);
         this._link = user;
