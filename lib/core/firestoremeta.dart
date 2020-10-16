@@ -14,6 +14,9 @@ class FirestoreMeta {
   /// Key for ignore update.
   static const String ignoreKey = "@ignore";
 
+  /// Key for geo hash.
+  static const String geoHashKey = "@geohash";
+
   /// Describes the metadata and processing at the time of getting.
   static final Map<String, FirestoreMetaFilter> filter = {
     "@translate": (key, value, data, document) {

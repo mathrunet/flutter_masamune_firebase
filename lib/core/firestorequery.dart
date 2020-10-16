@@ -125,6 +125,31 @@ class FirestoreQuery {
   /// Set up a Firestore query.
   ///
   /// It is possible to query the collection by setting this in FirestoreCollection.
+  ///
+  /// [key]: Key to query.
+  /// [location]: Central Location.
+  /// [radius]: Radius that includes.
+  FirestoreQuery.withIn(String key, GeoData location, [double radius = 1.0]) {
+    if (location == null || radius <= 0) {
+      this._type = FirestoreQueryType.empty;
+      this._key = null;
+    } else {
+      this._type = FirestoreQueryType.withIn;
+      this._key = key;
+      this._geoData = location is FirestoreGeoData
+          ? location
+          : FirestoreGeoData.fromGeoData(location);
+      this._value = radius;
+      int precision = _GeoUtility.setPrecision(radius);
+      String centerHash = this._geoData.hash.substring(0, precision);
+      this._contains = GeoFirePoint.neighborsOf(hash: centerHash)
+        ..add(centerHash);
+    }
+  }
+
+  /// Set up a Firestore query.
+  ///
+  /// It is possible to query the collection by setting this in FirestoreCollection.
   FirestoreQuery.empty() {
     this._type = FirestoreQueryType.empty;
     this._key = null;
@@ -239,6 +264,8 @@ class FirestoreQuery {
   /// Otherwise a string or number is returned.
   dynamic get value {
     switch (this.type) {
+      case FirestoreQueryType.withIn:
+        return this._geoData;
       case FirestoreQueryType.range:
         return this._range;
       default:
@@ -255,6 +282,10 @@ class FirestoreQuery {
   /// [value]: The actual value to query.
   set value(dynamic value) {
     switch (value.runtimeType) {
+      case GeoData:
+        this._type = FirestoreQueryType.withIn;
+        this._geoData = value as GeoData;
+        break;
       case Range:
         this._type = FirestoreQueryType.range;
         this._range = value as Range;
@@ -265,6 +296,7 @@ class FirestoreQuery {
     }
   }
 
+  FirestoreGeoData _geoData;
   Range _range = Range(0, 1);
   dynamic _value = 0;
 
@@ -287,10 +319,18 @@ class FirestoreQuery {
   List get contains => this._contains;
   List _contains = ListPool.get();
 
-  /// True if the Firestore query limit is caught.
-  bool get isQueryLimitation =>
-      this.type == FirestoreQueryType.inArray ||
-      this.type == FirestoreQueryType.arrayContainsAny;
+  /// The number of query attempts.
+  int get length {
+    switch (this.type) {
+      case FirestoreQueryType.inArray:
+      case FirestoreQueryType.arrayContainsAny:
+        return (this.contains.length / 10).ceil();
+      case FirestoreQueryType.withIn:
+        return this.contains.length;
+      default:
+        return 1;
+    }
+  }
 }
 
 /// Range class.

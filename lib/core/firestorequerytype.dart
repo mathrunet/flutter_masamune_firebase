@@ -26,6 +26,9 @@ enum FirestoreQueryType {
   /// All elements that match what is given in the list.
   inArray,
 
+  /// Check to see if you are within range of the location.
+  withIn,
+
   /// Empty query. The element is always empty.
   empty,
 }

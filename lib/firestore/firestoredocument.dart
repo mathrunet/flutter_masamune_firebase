@@ -434,7 +434,11 @@ class FirestoreDocument extends TaskDocument<DataField>
           in FirestoreMeta.filter.entries) {
         value = tmp.value(key, value, data, this);
       }
-      this[key] = value;
+      if (value is GeoPoint) {
+        this[key] = FirestoreGeoData.fromGeoPoint(value);
+      } else {
+        this[key] = value;
+      }
     });
     List<String> list = List.from(this.data.keys);
     for (String tmp in list) {
@@ -499,7 +503,17 @@ class FirestoreDocument extends TaskDocument<DataField>
             if (isEmpty(key)) return;
             if (key.contains(Const.atmark)) return;
             if (ignore != null && ignore.contains(key)) return;
-            dic[key] = value?.rawData;
+            Object val = value?.rawData;
+            if (val is FirestoreGeoData) {
+              dic["$key${FirestoreMeta.geoHashKey}"] = val.hash;
+              dic[key] = val.geoPoint;
+            } else if (val is GeoPoint) {
+              FirestoreGeoData geoData = FirestoreGeoData.fromGeoPoint(val);
+              dic["$key${FirestoreMeta.geoHashKey}"] = geoData.hash;
+              dic[key] = val;
+            } else {
+              dic[key] = val;
+            }
           });
           transaction.set(this._reference, dic);
         } else {
@@ -512,7 +526,17 @@ class FirestoreDocument extends TaskDocument<DataField>
               }
               return;
             }
-            dic[key] = value?.rawData;
+            Object val = value?.rawData;
+            if (val is FirestoreGeoData) {
+              dic["$key${FirestoreMeta.geoHashKey}"] = val.hash;
+              dic[key] = val.geoPoint;
+            } else if (val is GeoPoint) {
+              FirestoreGeoData geoData = FirestoreGeoData.fromGeoPoint(val);
+              dic["$key${FirestoreMeta.geoHashKey}"] = geoData.hash;
+              dic[key] = val;
+            } else {
+              dic[key] = val;
+            }
           });
           transaction.set(this._reference, dic);
         }

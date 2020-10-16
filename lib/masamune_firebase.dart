@@ -39,6 +39,8 @@ part 'core/typedef.dart';
 part 'core/firestorecollectionlistener.dart';
 part 'core/firestorequery.dart';
 part 'core/firestoremeta.dart';
+part 'core/firestoregeodata.dart';
+part 'core/geoutility.dart';
 
 part 'firebase/firebasecore.dart';
 
@@ -50,6 +52,7 @@ part 'firestore/firestorefolderstructureutility.dart';
 
 part 'firestore/model/firestoredocumentmodel.dart';
 part 'firestore/model/firestorecollectionmodel.dart';
+part 'firestore/model/searchablefirestorecollectionmodel.dart';
 
 part 'auth/firestoreauth.dart';
 part 'auth/authprovideroptions.dart';

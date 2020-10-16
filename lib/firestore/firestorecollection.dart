@@ -302,12 +302,7 @@ class FirestoreCollection extends TaskCollection<FirestoreDocument>
         this.done();
         return;
       }
-      for (int i = 0;
-          i <
-              (this.query == null || !this.query.isQueryLimitation
-                  ? 1
-                  : (this.query.contains.length / 10).ceil());
-          i++) {
+      for (int i = 0; i < (this.query == null ? 1 : this.query.length); i++) {
         _FirestoreCollectionListener listener = _FirestoreCollectionListener();
         listener.index = i;
         listener.reference = this._buildQueryInternal(
@@ -369,12 +364,7 @@ class FirestoreCollection extends TaskCollection<FirestoreDocument>
       if (this._app == null) this.__app = await FirebaseCore.initialize();
       if (this._auth == null)
         this.__auth = await FirestoreAuth.signIn(protocol: this.protocol);
-      for (int i = 0;
-          i <
-              (this.query == null || !this.query.isQueryLimitation
-                  ? 1
-                  : (this.query.contains.length / 10).ceil());
-          i++) {
+      for (int i = 0; i < (this.query == null ? 1 : this.query.length); i++) {
         _FirestoreCollectionListener listener = _FirestoreCollectionListener();
         listener.index = i;
         listener.reference = this._buildQueryInternal(
@@ -617,6 +607,15 @@ class FirestoreCollection extends TaskCollection<FirestoreDocument>
         }
         fquery = this._buildOrderInternal(fquery);
         break;
+      case FirestoreQueryType.withIn:
+        if (this.query.contains != null && this.query.contains.length > 0) {
+          String hash = this.query.contains[index];
+          fquery = fquery
+              .orderBy("${this.query.key}${FirestoreMeta.geoHashKey}")
+              .startAt([hash]).endAt(["$hash~"]);
+        }
+        fquery = this._buildLimitInternal(fquery);
+        break;
       default:
         break;
     }
@@ -836,6 +835,17 @@ class FirestoreCollection extends TaskCollection<FirestoreDocument>
         if (this.query.contains != null && this.query.contains.length > 0) {
           if (o == null) return false;
           return this.query.contains.contains(o);
+        }
+        return false;
+        break;
+      case FirestoreQueryType.withIn:
+        if (this.query.contains != null && this.query.contains.length > 0) {
+          String key = "${this.query.key}${FirestoreMeta.geoHashKey}";
+          if (!document.containsKey(key)) return false;
+          return this
+              .query
+              .contains
+              .any((element) => document.getString(key).startsWith(element));
         }
         return false;
         break;

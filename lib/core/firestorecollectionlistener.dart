@@ -2,8 +2,9 @@ part of masamune.firebase;
 
 class _FirestoreCollectionListener {
   Query reference;
-  StreamSubscription<QuerySnapshot> listener;
+  StreamSubscription listener;
   QuerySnapshot snapshot;
+  QuerySnapshot documentList;
   List<String> removed = [];
   DocumentSnapshot last;
   Map<String, Map<String, dynamic>> data;
