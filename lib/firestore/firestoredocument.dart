@@ -397,6 +397,7 @@ class FirestoreDocument extends TaskDocument<DataField>
             snapshot.data() == null ||
             snapshot.data().length <= 0) {
           this.done();
+          this._isDisposable = true;
           this.dispose();
         } else {
           this._done(
@@ -597,6 +598,55 @@ class FirestoreDocument extends TaskDocument<DataField>
   String get protocol {
     if (isEmpty(this.rawPath.scheme)) return "firestore";
     return this.rawPath.scheme;
+  }
+
+  /// Adds a count listener to the specified key.
+  ///
+  /// [key]: Keys to listen.
+  void addCounterListener(String key) {
+    if (isEmpty(key)) return;
+    if (this._subListener.containsKey(key)) return;
+    List ignore = this.getList(FirestoreMeta.ignoreKey, []);
+    if (!ignore.contains(key)) {
+      ignore.add(key);
+      this[FirestoreMeta.ignoreKey] = ignore;
+    }
+    num count;
+    Future task;
+    this._subListener[key] =
+        this._reference.collection(key).snapshots().listen((collection) {
+      count = collection?.docs?.fold(
+              0,
+              (previousValue, element) =>
+                  previousValue + (element?.data()["value"] ?? 0)) ??
+          0;
+      if (task != null) return;
+      int time = this.containsKey("time")
+          ? (this["time"] as Timestamp).millisecondsSinceEpoch
+          : 0;
+      int countAt = this.containsKey("@countAt")
+          ? (this["@countAt"] as Timestamp).millisecondsSinceEpoch
+          : 0;
+      if (this.containsKey(key) && (this.isUpdating || time > countAt)) {
+        task = Future.microtask(() async {
+          await Future.doWhile(() async {
+            await Future.delayed(Config.frameTime);
+            int time = this.containsKey("time")
+                ? (this["time"] as Timestamp).millisecondsSinceEpoch
+                : 0;
+            int countAt = this.containsKey("@countAt")
+                ? (this["@countAt"] as Timestamp).millisecondsSinceEpoch
+                : 0;
+            return this.containsKey(key) && (this.isUpdating || time > countAt);
+          });
+          this[key] = count;
+          task = null;
+        });
+      } else {
+        this[key] = count;
+        task = null;
+      }
+    });
   }
 
   /// Destroys the object.

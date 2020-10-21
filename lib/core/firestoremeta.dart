@@ -33,29 +33,14 @@ class FirestoreMeta {
       return map[Localize.language];
     },
     "@count": (key, value, data, document) {
-      if (!key.contains("@count")) return value;
+      if (data.containsKey("$key@count")) return null;
+      if (!key.endsWith("@count")) return value;
       String tmp = key.replaceAll("@count", Const.empty);
       if (document != null && document is FirestoreDocument) {
-        List ignore = document.getList(ignoreKey, []);
-        if (!ignore.contains(tmp)) ignore.add(tmp);
         if (document._subListener.containsKey(tmp)) return value;
-        document._subListener[tmp] = document._reference
-            .collection(tmp)
-            .snapshots()
-            .listen((collection) {
-          if (document.containsKey(tmp) && document.isUpdating) return;
-          if (document.containsKey("time") &&
-              document.containsKey("@time") &&
-              document["time"] != document["@time"]) return;
-          num count = collection?.docs?.fold(
-                  0,
-                  (previousValue, element) =>
-                      previousValue + (element?.data()["value"] ?? 0)) ??
-              0;
-          document[tmp] = count;
-        });
+        document.addCounterListener(tmp);
       }
       return value;
-    }
+    },
   };
 }

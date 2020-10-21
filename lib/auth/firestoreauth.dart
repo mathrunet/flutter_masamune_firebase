@@ -15,6 +15,11 @@ bool get isAnonymously {
   return FirestoreAuth.isAnonymously();
 }
 
+/// If the specified ID is your ID, True.
+bool isOwnId(String id) {
+  return userId == id.applyTags();
+}
+
 /// Firebase / Firestore Authentication class.
 ///
 /// Basically, anonymous authentication is performed,

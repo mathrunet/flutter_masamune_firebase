@@ -28,7 +28,7 @@ packages:
       name: cached_network_image
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.3.2+1"
+    version: "2.3.3"
   characters:
     dependency: transitive
     description:
@@ -250,7 +250,7 @@ packages:
       name: flutter_cache_manager
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.4.2"
+    version: "2.0.0"
   flutter_device_locale:
     dependency: transitive
     description:
@@ -302,7 +302,7 @@ packages:
       name: flutter_widget_model
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.5.1+21"
+    version: "0.5.1+22"
   geoflutterfire:
     dependency: "direct main"
     description:
@@ -358,7 +358,7 @@ packages:
       name: masamune_flutter
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.5.2"
+    version: "0.5.2+3"
   masamune_localize:
     dependency: "direct main"
     description:
@@ -566,7 +566,7 @@ packages:
       name: sqflite
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.3.1+1"
+    version: "1.3.1+2"
   sqflite_common:
     dependency: transitive
     description:
