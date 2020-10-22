@@ -10,6 +10,16 @@ String get userEmail {
   return FirestoreAuth.getEmail();
 }
 
+/// Get the Firestore Auth user is signed-in.
+bool get isSignedIn {
+  return FirestoreAuth.isSignedIn();
+}
+
+/// Get the Firestore Auth user mail address is verified.
+bool get isVerified {
+  return FirestoreAuth.isVerified();
+}
+
 /// If you are logged in anonymously, True.
 bool get isAnonymously {
   return FirestoreAuth.isAnonymously();
@@ -167,6 +177,16 @@ class FirestoreAuth extends Auth {
     return auth._link?.email;
   }
 
+  /// You can get the status that user email is verified
+  /// after authentication is completed.
+  ///
+  /// [protorol]: Protocol specification.
+  static bool isVerified({String protocol}) {
+    FirestoreAuth auth = FirestoreAuth(protocol);
+    if (auth == null) return false;
+    return auth._link?.emailVerified ?? false;
+  }
+
   /// You can get the PhoneNumber after authentication is completed.
   ///
   /// Null is returned if authentication is not completed.
@@ -282,13 +302,21 @@ class FirestoreAuth extends Auth {
       }
       await this._auth.signOut().timeout(timeout);
       this._link = null;
-      this.done();
+      this.unauthorized();
     } on TimeoutException catch (e) {
       this.timeout(e.toString());
     } catch (e) {
       this.error(e.toString());
     }
   }
+
+  /// Check the user's verified status.
+  ///
+  /// [protorol]: Protocol specification.
+  /// [timeout]: Timeout time.
+  static Future<bool> updateVerifiedStatus(
+          {String protocol, Duration timeout = Const.timeout}) =>
+      tryRestoreAuth(protocol: protocol, timeout: timeout);
 
   /// Re-authenticate using your email address and password.
   ///
@@ -471,6 +499,10 @@ class FirestoreAuth extends Auth {
         this.__app = await FirebaseCore.initialize(timeout: timeout);
       if (this._auth == null) {
         this.error("Firebase auth is not found.");
+        return;
+      }
+      if (this._link.emailVerified) {
+        this.error("This user has already been authenticated.");
         return;
       }
       await this._auth.setLanguageCode(locale ?? Localize.locale);
@@ -1032,6 +1064,17 @@ class FirestoreAuth extends Auth {
     PathTag.set("UID", uid);
     PathTag.set("UserID", uid);
     super.authorized(uid);
+  }
+
+  /// To delete the credentials after logging out.
+  ///
+  /// Do not use from external class.
+  @override
+  @protected
+  void unauthorized() {
+    PathTag.set("UID", null);
+    PathTag.set("UserID", null);
+    super.unauthorized();
   }
 
   /// Get the protocol of the path.

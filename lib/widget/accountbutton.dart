@@ -13,6 +13,9 @@ class AccountButton extends StatelessWidget {
   /// Change password button label.
   final String changePasswordLabel;
 
+  /// Setting button label.
+  final String settingLabel;
+
   /// Confirmation screen title.
   final String logoutConfirmTitle;
 
@@ -53,6 +56,12 @@ class AccountButton extends StatelessWidget {
   /// Callback for a successful logout.
   final Function onLogout;
 
+  /// The route path of the setting.
+  final String settingRoutePath;
+
+  /// True if the setting is enabled.
+  final bool enableSetting;
+
   /// Menu button to account management.
   ///
   /// Please install it in the actions of AppBar.
@@ -66,10 +75,13 @@ class AccountButton extends StatelessWidget {
       this.logoutCompletedTitle = "Success",
       this.changeEmailLabel = "Change Email",
       this.changePasswordLabel = "Change Password",
+      this.settingLabel = "Setting",
       this.backRoutePath = "/login",
       this.reauthRoutePath = "/account/reauth",
       this.changeEmailRoutePath = "/account/email/edit",
       this.changePasswordRoutePath = "/account/password/edit",
+      this.settingRoutePath = "/setting",
+      this.enableSetting = false,
       this.enableChangeEmail = false,
       this.onLogout,
       this.enableChangePassword = false});
@@ -83,6 +95,9 @@ class AccountButton extends StatelessWidget {
       color: Colors.white,
       onSelected: (String s) {
         switch (s) {
+          case "setting":
+            context.rootNavigator.pushNamed(this.settingRoutePath);
+            break;
           case "logout":
             UIConfirm.show(context,
                 title: this.logoutConfirmTitle.localize(),
@@ -107,17 +122,22 @@ class AccountButton extends StatelessWidget {
             }, cacnelText: this.logoutCancelText.localize());
             break;
           case "changeEmail":
-            context.navigator.pushNamed(
+            context.rootNavigator.pushNamed(
                 "${this.reauthRoutePath}?redirect_to=${this.changeEmailRoutePath}");
             break;
           case "changePassword":
-            context.navigator.pushNamed(
+            context.rootNavigator.pushNamed(
                 "${this.reauthRoutePath}?redirect_to=${this.changePasswordRoutePath}");
             break;
         }
       },
       itemBuilder: (BuildContext context) {
         return [
+          if (this.enableSetting)
+            PopupMenuItem(
+              child: Text(this.settingLabel.localize()),
+              value: "setting",
+            ),
           if (this.enableChangeEmail)
             PopupMenuItem(
               child: Text(this.changeEmailLabel.localize()),
