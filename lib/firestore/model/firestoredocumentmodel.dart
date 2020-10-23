@@ -62,22 +62,29 @@ class FirestoreDocumentModel extends DocumentModel<FirestoreDocument> {
     }
   }
 
-  Future saveAll(
-      {Map<String, dynamic> data,
-      void builder(FirestoreDocument document)}) async {
+  /// Save the document data.
+  ///
+  /// The [data] is the value to be saved in the document. If the data exists in the current document, it will be overwritten.
+  ///
+  /// The [builder] can handle the document as it is after the data is saved.
+  @override
+  Future<T> save<T extends IDataDocument>(
+      {Map<String, dynamic> data, void builder(T document)}) async {
     FirestoreDocument state = await FirestoreDocument.listen(this.path);
     if (state == null || state.isDisposed) {
       state = FirestoreDocument.create(this.path);
     }
-    if (data != null) {
-      for (MapEntry<String, dynamic> tmp in data.entries) {
-        if (isEmpty(tmp.key) || tmp.value == null) continue;
-        state[tmp.key] = tmp.value;
-      }
-    }
-    if (builder != null) {
-      builder(state);
-    }
-    await state.save();
+    await state.save(data: data, builder: builder);
+    return this as T;
   }
+
+  /// Increase the number.
+  ///
+  /// Increase the number in real time and
+  /// make it consistent on the server side.
+  ///
+  /// [path]: Increment key.
+  /// [value]: Increment value.
+  Future increment(String key, int value) =>
+      FirestoreUtility.increment(Paths.child(this.path, key), value);
 }

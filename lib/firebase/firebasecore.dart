@@ -38,7 +38,7 @@ class FirebaseCore extends TaskUnit {
   FirebaseOptions get options => this._options;
   FirebaseOptions _options;
   FirebaseFirestore _db;
-  Map<String, Set<FirestoreCollection>> _parentList = MapPool.get();
+  Map<String, Set<IFirestoreCollectionListener>> _parentList = MapPool.get();
   List<FirestoreDocument> _updateStack = ListPool.get();
   void _startUpdate() {
     if (this._timer != null) return;

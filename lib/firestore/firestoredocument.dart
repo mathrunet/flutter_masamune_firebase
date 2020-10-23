@@ -508,10 +508,14 @@ class FirestoreDocument extends TaskDocument<DataField>
             if (val is FirestoreGeoData) {
               dic["$key${FirestoreMeta.geoHashKey}"] = val.hash;
               dic[key] = val.geoPoint;
+            } else if (val is GeoData) {
+              FirestoreGeoData geoData = FirestoreGeoData.fromGeoData(val);
+              dic["$key${FirestoreMeta.geoHashKey}"] = geoData.hash;
+              dic[key] = geoData.geoPoint;
             } else if (val is GeoPoint) {
               FirestoreGeoData geoData = FirestoreGeoData.fromGeoPoint(val);
               dic["$key${FirestoreMeta.geoHashKey}"] = geoData.hash;
-              dic[key] = val;
+              dic[key] = geoData.geoPoint;
             } else {
               dic[key] = val;
             }
@@ -531,10 +535,14 @@ class FirestoreDocument extends TaskDocument<DataField>
             if (val is FirestoreGeoData) {
               dic["$key${FirestoreMeta.geoHashKey}"] = val.hash;
               dic[key] = val.geoPoint;
+            } else if (val is GeoData) {
+              FirestoreGeoData geoData = FirestoreGeoData.fromGeoData(val);
+              dic["$key${FirestoreMeta.geoHashKey}"] = geoData.hash;
+              dic[key] = geoData.geoPoint;
             } else if (val is GeoPoint) {
               FirestoreGeoData geoData = FirestoreGeoData.fromGeoPoint(val);
               dic["$key${FirestoreMeta.geoHashKey}"] = geoData.hash;
-              dic[key] = val;
+              dic[key] = geoData.geoPoint;
             } else {
               dic[key] = val;
             }

@@ -14,7 +14,7 @@ class FirestoreGeoData extends GeoData {
 
   /// GeoData for Firestore.
   FirestoreGeoData({double latitude, double longitude, String name})
-      : this._geoFirePoint = GeoFirePoint(latitude, longitude),
+      : this._geoFirePoint = GeoFirePoint(latitude ?? 0, longitude ?? 0),
         this._name = name;
 
   /// GeoData for Firestore.
@@ -32,10 +32,10 @@ class FirestoreGeoData extends GeoData {
             name: name ?? geoData.name);
 
   /// Latitude.
-  double get latitude => this._geoFirePoint.latitude;
+  double get latitude => this._geoFirePoint.latitude ?? 0;
 
   /// Longitude.
-  double get longitude => this._geoFirePoint.longitude;
+  double get longitude => this._geoFirePoint.longitude ?? 0;
 
   /// Geographical distance between two Co-ordinates.
   static double distanceBetween(

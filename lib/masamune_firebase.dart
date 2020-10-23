@@ -49,6 +49,7 @@ part 'firestore/firestoredocument.dart';
 part 'firestore/firestorecollection.dart';
 part 'firestore/searchablefirestorecollection.dart';
 part 'firestore/firestorefolderstructureutility.dart';
+part 'firestore/firestoreutility.dart';
 
 part 'firestore/model/firestoredocumentmodel.dart';
 part 'firestore/model/firestorecollectionmodel.dart';
