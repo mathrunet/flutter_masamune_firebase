@@ -1,3 +1,7 @@
+## [0.5.2] - Update README (2020.10.27)
+
+* Raised the minimum version of Flutter to 2.8.0
+
 ## [0.5.1] - Update README (2020.10.15)
 
 * Firebase Update.
