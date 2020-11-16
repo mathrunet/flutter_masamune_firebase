@@ -366,6 +366,9 @@ class FirestoreDocument extends TaskDocument<DataField>
         else
           list.add(value.clone(path: child, isTemporary: false));
       } else {
+        if (value is GeoPoint) {
+          value = FirestoreGeoData.fromGeoPoint(value);
+        }
         list.add(DataField(Paths.child(path, key), value));
       }
     });
