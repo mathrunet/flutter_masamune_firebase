@@ -310,6 +310,44 @@ class FirestoreAuth extends Auth {
     }
   }
 
+  /// Account delete.
+  ///
+  /// [protorol]: Protocol specification.
+  /// [timeout]: Timeout time.
+  static Future<FirestoreAuth> delete(
+      {String protocol, Duration timeout = Const.timeout}) {
+    if (isEmpty(protocol)) protocol = "firestore";
+    String path = Texts.format(_systemPath, [protocol]);
+    FirestoreAuth unit = PathMap.get<FirestoreAuth>(path);
+    if (unit == null) unit = FirestoreAuth._(path);
+    assert(!(isEmpty(unit.uid) || unit._link == null));
+    if (isEmpty(unit.uid) || unit._link == null) {
+      Log.error("Not logged in yet. Please wait until login is successful.");
+      return unit.future;
+    }
+    unit._deleteProcess(timeout);
+    return unit.future;
+  }
+
+  Future _deleteProcess(Duration timeout) async {
+    try {
+      this.init();
+      if (this._app == null)
+        this.__app = await FirebaseCore.initialize(timeout: timeout);
+      if (this._auth == null) {
+        this.error("Firebase auth is not found.");
+        return;
+      }
+      await this._link.delete().timeout(timeout);
+      this._link = null;
+      this.unauthorized();
+    } on TimeoutException catch (e) {
+      this.timeout(e.toString());
+    } catch (e) {
+      this.error(e.toString());
+    }
+  }
+
   /// Check the user's verified status.
   ///
   /// [protorol]: Protocol specification.

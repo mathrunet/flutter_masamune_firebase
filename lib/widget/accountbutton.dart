@@ -7,6 +7,9 @@ class AccountButton extends StatelessWidget {
   /// Logout button label.
   final String logoutLabel;
 
+  /// User delete button label.
+  final String deleteLabel;
+
   /// Change email button label.
   final String changeEmailLabel;
 
@@ -34,6 +37,27 @@ class AccountButton extends StatelessWidget {
   /// Text of the logout completion screen.
   final String logoutCompletedText;
 
+  /// Confirmation screen title.
+  final String deleteConfirmTitle;
+
+  /// Confirmation screen text.
+  final String deleteConfirmText;
+
+  /// Submit button text.
+  final String deleteSubmitText;
+
+  /// Cancel button text.
+  final String deleteCancelText;
+
+  /// The title of the logout completion screen.
+  final String deleteCompletedTitle;
+
+  /// Text of the logout completion screen.
+  final String deleteCompletedText;
+
+  /// Displays the deleting user account menu.
+  final bool enableDeleteAccount;
+
   /// The root path of the page to return to after logging out.
   /// (usually the login screen)
   final String backRoutePath;
@@ -56,6 +80,9 @@ class AccountButton extends StatelessWidget {
   /// Callback for a successful logout.
   final Function onLogout;
 
+  /// Callback for a successful account deletion.
+  final Function onDeleted;
+
   /// The route path of the setting.
   final String settingRoutePath;
 
@@ -73,6 +100,14 @@ class AccountButton extends StatelessWidget {
       this.logoutCancelText = "No",
       this.logoutCompletedText = "Logout is complete.",
       this.logoutCompletedTitle = "Success",
+      this.deleteLabel = "Account deletion",
+      this.deleteConfirmText =
+          "The account is deleted. After deleting the account, it cannot be restored. Are you sure?",
+      this.deleteConfirmTitle = "Confirmation",
+      this.deleteSubmitText = "Yes",
+      this.deleteCancelText = "No",
+      this.deleteCompletedText = "Account deletion is complete.",
+      this.deleteCompletedTitle = "Success",
       this.changeEmailLabel = "Change Email",
       this.changePasswordLabel = "Change Password",
       this.settingLabel = "Setting",
@@ -81,9 +116,11 @@ class AccountButton extends StatelessWidget {
       this.changeEmailRoutePath = "/account/email/edit",
       this.changePasswordRoutePath = "/account/password/edit",
       this.settingRoutePath = "/setting",
+      this.enableDeleteAccount = false,
       this.enableSetting = false,
       this.enableChangeEmail = false,
       this.onLogout,
+      this.onDeleted,
       this.enableChangePassword = false});
 
   /// Build method.
@@ -97,6 +134,29 @@ class AccountButton extends StatelessWidget {
         switch (s) {
           case "setting":
             context.rootNavigator.pushNamed(this.settingRoutePath);
+            break;
+          case "delete":
+            UIConfirm.show(context,
+                title: this.deleteConfirmTitle.localize(),
+                text: this.deleteConfirmText.localize(),
+                submitText: this.deleteSubmitText.localize(),
+                onSubmit: () async {
+              FirestoreAuth auth =
+                  await FirestoreAuth.delete().showIndicator(context);
+              if (auth == null || auth.isError || auth.isAbort) {
+                UIDialog.show(context,
+                    title: "Error".localize(), text: auth?.message);
+                return;
+              }
+              if (this.onDeleted != null) this.onDeleted();
+              UIDialog.show(context,
+                  title: this.deleteCompletedTitle.localize(),
+                  text: this.deleteCompletedText.localize(),
+                  onSubmit: () async {
+                context.navigator.pushNamedAndRemoveUntil(
+                    this.backRoutePath, (route) => false);
+              });
+            }, cacnelText: this.deleteCancelText.localize());
             break;
           case "logout":
             UIConfirm.show(context,
@@ -151,7 +211,12 @@ class AccountButton extends StatelessWidget {
           PopupMenuItem(
             child: Text(this.logoutLabel.localize()),
             value: "logout",
-          )
+          ),
+          if (this.enableDeleteAccount)
+            PopupMenuItem(
+              child: Text(this.deleteLabel.localize()),
+              value: "delete",
+            ),
         ];
       },
     );
