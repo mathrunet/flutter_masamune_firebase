@@ -632,22 +632,24 @@ class FirestoreDocument extends TaskDocument<DataField>
                   previousValue + (element?.data()["value"] ?? 0)) ??
           0;
       if (task != null) return;
-      int time = this.containsKey("time")
+      int time = this.containsKey("time") && this["time"] is Timestamp
           ? (this["time"] as Timestamp).millisecondsSinceEpoch
           : 0;
-      int countAt = this.containsKey("@countAt")
-          ? (this["@countAt"] as Timestamp).millisecondsSinceEpoch
-          : 0;
+      int countAt =
+          this.containsKey("@countAt") && this["@countAt"] is Timestamp
+              ? (this["@countAt"] as Timestamp).millisecondsSinceEpoch
+              : 0;
       if (this.containsKey(key) && (this.isUpdating || time > countAt)) {
         task = Future.microtask(() async {
           await Future.doWhile(() async {
             await Future.delayed(Config.frameTime);
-            int time = this.containsKey("time")
+            int time = this.containsKey("time") && this["time"] is Timestamp
                 ? (this["time"] as Timestamp).millisecondsSinceEpoch
                 : 0;
-            int countAt = this.containsKey("@countAt")
-                ? (this["@countAt"] as Timestamp).millisecondsSinceEpoch
-                : 0;
+            int countAt =
+                this.containsKey("@countAt") && this["@countAt"] is Timestamp
+                    ? (this["@countAt"] as Timestamp).millisecondsSinceEpoch
+                    : 0;
             return this.containsKey(key) && (this.isUpdating || time > countAt);
           });
           this[key] = count;
