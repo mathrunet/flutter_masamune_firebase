@@ -61,7 +61,7 @@ class FirestoreQuery {
   ///
   /// [key]: Key to query.
   /// [value]: Value to query.
-  FirestoreQuery.range(String key, double min, double max) {
+  FirestoreQuery.range(String key, num min, num max) {
     this._type = FirestoreQueryType.range;
     this._key = key;
     this.value = Range(min, max);
@@ -342,10 +342,10 @@ class FirestoreQuery {
 /// ```
 class Range {
   /// Minimum value.
-  double min = 0;
+  num min = 0;
 
   /// Maximum value.
-  double max = 1;
+  num max = 1;
 
   /// Range class.
   ///
@@ -357,7 +357,7 @@ class Range {
   ///
   /// [min]: Minimum value.
   /// [max]: Maximum value.
-  Range(double min, double max) {
+  Range(num min, num max) {
     this.min = min;
     this.max = max;
   }
