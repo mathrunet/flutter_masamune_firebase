@@ -28,7 +28,6 @@ class UILoginForm extends StatelessWidget with UIFormMixin {
   Widget build(BuildContext context) {
     return Form(
         key: this.formKey,
-        autovalidate: true,
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
@@ -40,7 +39,6 @@ class UILoginForm extends StatelessWidget with UIFormMixin {
                     hintText: "Please enter a email address".localize(),
                     labelText: "Email".localize(),
                   ),
-                  autovalidate: false,
                   validator: (value) {
                     if (isEmpty(value))
                       return "Please enter some text".localize();
@@ -61,7 +59,6 @@ class UILoginForm extends StatelessWidget with UIFormMixin {
                     hintText: "Please enter a password".localize(),
                     labelText: "Password".localize(),
                   ),
-                  autovalidate: false,
                   validator: (value) {
                     if (isEmpty(value))
                       return "Please enter some text".localize();
