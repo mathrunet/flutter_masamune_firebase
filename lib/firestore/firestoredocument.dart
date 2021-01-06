@@ -462,7 +462,7 @@ class FirestoreDocument extends TaskDocument<DataField>
   @override
   Future<T> save<T extends IDataDocument>(
       {Map<String, dynamic> data, void builder(T document)}) {
-    // if (this.isDisposed) return this.future;
+    if (this.isDisposed) return this.future;
     assert(this._app != null);
     assert(this._auth != null);
     if (this._app == null || this._auth == null) {
