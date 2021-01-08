@@ -1,3 +1,7 @@
+## [0.6.0] - Update README (2021.01.07)
+
+* Hook and InheritWidget are integrated.
+
 ## [0.5.2] - Update README (2020.10.27)
 
 * Raised the minimum version of Flutter to 2.8.0

@@ -2,7 +2,7 @@ name: masamune_firebase
 description: >-
   Module for supporting the Firebase/Firestore function of Masamune framework.
   It is also available on the web.
-version: 0.5.2+8
+version: 0.6.0
 homepage: https://mathru.net
 repository: https://github.com/mathrunet/flutter_masamune_firebase
 
@@ -26,10 +26,10 @@ dependencies:
   firebase_remote_config: ^0.4.0+2
   geoflutterfire: ^2.2.1
   # Masamune
-  masamune_core: ^0.5.0
-  masamune_flutter: ^0.5.0
-  masamune_localize: ^0.5.0
-  flutter_widget_model: ^0.5.0
+  masamune_core: ^0.6.0
+  masamune_flutter: ^0.6.0
+  masamune_localize: ^0.6.0
+  flutter_widget_model: ^0.6.0
 
 dev_dependencies:
   flutter_test:

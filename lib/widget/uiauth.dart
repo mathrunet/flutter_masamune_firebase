@@ -67,7 +67,9 @@ class UIAuth extends StatelessWidget {
     try {
       if (!forceLogin && FirestoreAuth.isSignedIn()) {
         if (actionAfterSignIn != null) {
-          Future.delayed(Duration.zero, () => actionAfterSignIn());
+          WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+            actionAfterSignIn();
+          });
         }
         return Container();
       }
@@ -111,11 +113,15 @@ class UIAuth extends StatelessWidget {
               ))));
     } on TimeoutException {
       if (actionOnTimeout != null) {
-        Future.delayed(Duration.zero, () => actionOnTimeout());
+        WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+          actionOnTimeout();
+        });
       }
     } catch (e) {
       if (actionOnError != null) {
-        Future.delayed(Duration.zero, () => actionOnError());
+        WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+          actionOnError();
+        });
       }
     }
     return Container();
