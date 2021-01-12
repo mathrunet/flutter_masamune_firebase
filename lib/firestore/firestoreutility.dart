@@ -18,10 +18,10 @@ class FirestoreUtility {
       DataField(path, value);
       doc = await FirestoreDocument.listen(parent);
       doc[key] = (doc.getInt(key, 0) + value).limitLow(0);
-      if (doc is FirestoreDocument) doc.addCounterListener(key);
+      if (doc is FirestoreDocument) doc.asCounter([key]);
     } else {
       doc[key] = (doc.getInt(key, 0) + value).limitLow(0);
-      if (doc is FirestoreDocument) doc.addCounterListener(key);
+      if (doc is FirestoreDocument) doc.asCounter([key]);
     }
   }
 }
