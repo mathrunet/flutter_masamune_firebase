@@ -38,7 +38,7 @@ class FirestoreMeta {
       String tmp = key.replaceAll("@count", Const.empty);
       if (document != null && document is FirestoreDocument) {
         if (document._subListener.containsKey(tmp)) return value;
-        document.asCounter([tmp]);
+        document.useCounter([tmp]);
       }
       return value;
     },

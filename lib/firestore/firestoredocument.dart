@@ -614,7 +614,7 @@ class FirestoreDocument extends TaskDocument<DataField>
   /// Adds a count listener to the specified key.
   ///
   /// [key]: Keys to listen.
-  FirestoreDocument asCounter(List<String> keys) {
+  FirestoreDocument useCounter(List<String> keys) {
     if (keys == null || keys.length <= 0) return this;
     for (String key in keys) {
       if (this._subListener.containsKey(key)) continue;
@@ -656,10 +656,12 @@ class FirestoreDocument extends TaskDocument<DataField>
             });
             this[key] = count;
             task = null;
+            this.notifyUpdate();
           });
         } else {
           this[key] = count;
           task = null;
+          this.notifyUpdate();
         }
       });
     }
@@ -702,10 +704,10 @@ class FirestoreDocument extends TaskDocument<DataField>
 
 /// Extension method for Future in FirestoreDocument.
 extension FirestoreDocumentFutureExtension on Future<FirestoreDocument> {
-  Future<FirestoreDocument> asCounter(List<String> keys) {
+  Future<FirestoreDocument> useCounter(List<String> keys) {
     if (this == null || keys == null || keys.length <= 0) return this;
     return this.then((path) {
-      return path.asCounter(keys);
+      return path.useCounter(keys);
     });
   }
 }
