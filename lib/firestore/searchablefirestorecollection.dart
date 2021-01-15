@@ -76,6 +76,7 @@ class SearchableFirestoreCollection extends TaskCollection<FirestoreDocument>
   }
 
   FirestoreAuth __auth;
+  List<String> _keysAsCounter;
   List<_FirestoreCollectionListener> _listener = ListPool.get();
 
   /// Perform a full text search in Firestore using the fields you created the map in Bigram.
@@ -141,6 +142,7 @@ class SearchableFirestoreCollection extends TaskCollection<FirestoreDocument>
       {String queryKey = "@search",
       int limit = 500,
       String searchText,
+      List<String> keysAsCounter,
       OrderBy orderBy = OrderBy.none,
       OrderBy thenBy = OrderBy.none,
       String orderByKey,
@@ -175,6 +177,11 @@ class SearchableFirestoreCollection extends TaskCollection<FirestoreDocument>
         reload = true;
         collection._limit = limit;
       }
+      if (keysAsCounter != null &&
+          !keysAsCounter.equals(collection._keysAsCounter)) {
+        reload = true;
+        collection._keysAsCounter = keysAsCounter;
+      }
       if (collection.isChanged(
           orderBy: orderBy,
           thenBy: thenBy,
@@ -188,6 +195,7 @@ class SearchableFirestoreCollection extends TaskCollection<FirestoreDocument>
         isListenable: true,
         searchText: searchText,
         limit: limit,
+        keysAsCounter: keysAsCounter,
         orderBy: orderBy,
         thenBy: thenBy,
         orderByKey: orderByKey,
@@ -225,6 +233,7 @@ class SearchableFirestoreCollection extends TaskCollection<FirestoreDocument>
       {String queryKey = "@search",
       int limit = 500,
       String searchText,
+      List<String> keysAsCounter,
       OrderBy orderBy = OrderBy.none,
       OrderBy thenBy = OrderBy.none,
       String orderByKey,
@@ -259,6 +268,11 @@ class SearchableFirestoreCollection extends TaskCollection<FirestoreDocument>
         reload = true;
         collection._limit = limit;
       }
+      if (keysAsCounter != null &&
+          !keysAsCounter.equals(collection._keysAsCounter)) {
+        reload = true;
+        collection._keysAsCounter = keysAsCounter;
+      }
       if (collection.isChanged(
           orderBy: orderBy,
           thenBy: thenBy,
@@ -273,6 +287,7 @@ class SearchableFirestoreCollection extends TaskCollection<FirestoreDocument>
         limit: limit,
         orderBy: orderBy,
         thenBy: thenBy,
+        keysAsCounter: keysAsCounter,
         orderByKey: orderByKey,
         thenByKey: thenByKey);
     collection._constructListener();
@@ -289,11 +304,13 @@ class SearchableFirestoreCollection extends TaskCollection<FirestoreDocument>
       bool isTemporary = false,
       int group = 0,
       int order = 10,
+      List<String> keysAsCounter,
       OrderBy orderBy = OrderBy.none,
       OrderBy thenBy = OrderBy.none,
       String orderByKey,
       String thenByKey})
       : this._isListenable = isListenable,
+        this._keysAsCounter = keysAsCounter,
         super(
             path: path,
             children: children,
@@ -520,8 +537,8 @@ class SearchableFirestoreCollection extends TaskCollection<FirestoreDocument>
         if (doc != null) {
           doc._setInternal(value);
         } else {
-          addData.add(
-              FirestoreDocument._create(Paths.child(this.path, key), value));
+          addData.add(FirestoreDocument._create(Paths.child(this.path, key),
+              data: value, keysAsCounter: this._keysAsCounter));
         }
         value.release();
       });

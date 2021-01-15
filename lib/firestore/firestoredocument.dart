@@ -59,6 +59,7 @@ class FirestoreDocument extends TaskDocument<DataField>
   }
 
   DocumentReference __reference;
+  List<String> _keysAsCounter;
   // ignore: cancel_subscriptions
   StreamSubscription<DocumentSnapshot> _listener;
   Map<String, StreamSubscription> _subListener = MapPool.get();
@@ -111,7 +112,9 @@ class FirestoreDocument extends TaskDocument<DataField>
   /// Request and listen to a document.
   ///
   /// [path]: Document path.
-  static Future<FirestoreDocument> listen(String path) {
+  /// [keysAsCounter]: A key used as a counter.
+  static Future<FirestoreDocument> listen(String path,
+      {List<String> keysAsCounter}) {
     path =
         Paths.removeQuery(path?.replaceAll("https", "firestore")?.applyTags());
     assert(isNotEmpty(path));
@@ -129,9 +132,11 @@ class FirestoreDocument extends TaskDocument<DataField>
     if (document != null) {
       if (!document.isListenable) document._isListenable = true;
       if (!document.isUpdatable) document._isUpdatable = true;
+      if (keysAsCounter != null) document._keysAsCounter = keysAsCounter;
       return document.future;
     }
-    document = FirestoreDocument._(path: path, isListenable: true);
+    document = FirestoreDocument._(
+        path: path, isListenable: true, keysAsCounter: keysAsCounter);
     document._constructListener();
     return document.future;
   }
@@ -153,7 +158,9 @@ class FirestoreDocument extends TaskDocument<DataField>
   /// Request and listen to a document.
   ///
   /// [path]: Document path.
-  static Future<FirestoreDocument> load(String path) {
+  /// [keysAsCounter]: A key used as a counter.
+  static Future<FirestoreDocument> load(String path,
+      {List<String> keysAsCounter}) {
     path =
         Paths.removeQuery(path?.replaceAll("https", "firestore")?.applyTags());
     assert(isNotEmpty(path));
@@ -169,11 +176,17 @@ class FirestoreDocument extends TaskDocument<DataField>
     }
     FirestoreDocument document = PathMap.get<FirestoreDocument>(path);
     if (document != null) {
+      bool reload = false;
       if (document.isListenable) document._isListenable = false;
       if (!document.isUpdatable) document._isUpdatable = true;
-      return document.future;
+      if (keysAsCounter != null &&
+          !keysAsCounter.equals(document._keysAsCounter)) {
+        reload = true;
+        document._keysAsCounter = keysAsCounter;
+      }
+      return reload ? document.reload() : document.future;
     }
-    document = FirestoreDocument._(path: path);
+    document = FirestoreDocument._(path: path, keysAsCounter: keysAsCounter);
     document._constructListener();
     return document.future;
   }
@@ -193,8 +206,9 @@ class FirestoreDocument extends TaskDocument<DataField>
   ///
   /// [path]: Document path.
   /// [data]: Data set locally.
+  /// [keysAsCounter]: A key used as a counter.
   static Future<FirestoreDocument> createAsFuture(String path,
-      [Map<String, dynamic> data]) {
+      {Map<String, dynamic> data, List<String> keysAsCounter}) {
     path =
         Paths.removeQuery(path?.replaceAll("https", "firestore")?.applyTags());
     assert(isNotEmpty(path));
@@ -212,10 +226,12 @@ class FirestoreDocument extends TaskDocument<DataField>
     if (document != null) {
       if (document.isListenable) document._isListenable = false;
       if (!document.isUpdatable) document._isUpdatable = true;
+      if (keysAsCounter != null) document._keysAsCounter = keysAsCounter;
       if (data != null) document.set(document._convertData(path, data));
       return document.asFuture();
     }
-    document = FirestoreDocument._(path: path, isTemporary: true);
+    document = FirestoreDocument._(
+        path: path, isTemporary: true, keysAsCounter: keysAsCounter);
     if (data != null) document.set(document._convertData(path, data));
     document.done();
     return document.asFuture();
@@ -236,7 +252,8 @@ class FirestoreDocument extends TaskDocument<DataField>
   ///
   /// [path]: Document path
   /// [data]: Data set locally
-  static FirestoreDocument create(String path, [Map<String, dynamic> data]) {
+  static FirestoreDocument create(String path,
+      {Map<String, dynamic> data, List<String> keysAsCounter}) {
     path =
         Paths.removeQuery(path?.replaceAll("https", "firestore")?.applyTags());
     assert(isNotEmpty(path));
@@ -254,16 +271,19 @@ class FirestoreDocument extends TaskDocument<DataField>
     if (document != null) {
       if (document.isListenable) document._isListenable = false;
       if (!document.isUpdatable) document._isUpdatable = true;
+      if (keysAsCounter != null) document._keysAsCounter = keysAsCounter;
       if (data != null) document.set(document._convertData(path, data));
       return document;
     }
-    document = FirestoreDocument._(path: path, isTemporary: true);
+    document = FirestoreDocument._(
+        path: path, isTemporary: true, keysAsCounter: keysAsCounter);
     if (data != null) document.set(document._convertData(path, data));
     document.done();
     return document;
   }
 
-  static FirestoreDocument _create(String path, [Map<String, dynamic> data]) {
+  static FirestoreDocument _create(String path,
+      {Map<String, dynamic> data, List<String> keysAsCounter}) {
     path =
         Paths.removeQuery(path?.replaceAll("https", "firestore")?.applyTags());
     assert(isNotEmpty(path));
@@ -281,10 +301,11 @@ class FirestoreDocument extends TaskDocument<DataField>
     if (document != null) {
       if (document.isListenable) document._isListenable = false;
       if (!document.isUpdatable) document._isUpdatable = true;
+      if (keysAsCounter != null) document._keysAsCounter = keysAsCounter;
       if (data != null) document.set(document._convertData(path, data));
       return document;
     }
-    document = FirestoreDocument._(path: path);
+    document = FirestoreDocument._(path: path, keysAsCounter: keysAsCounter);
     if (data != null) document.set(document._convertData(path, data));
     document.done();
     return document;
@@ -328,9 +349,11 @@ class FirestoreDocument extends TaskDocument<DataField>
       bool isListenable = false,
       Iterable<DataField> children,
       bool isTemporary = false,
+      List<String> keysAsCounter,
       int group = 0,
       int order = 10})
       : this._isListenable = isListenable,
+        this._keysAsCounter = keysAsCounter,
         super(
             path: path,
             children: children,
@@ -425,6 +448,7 @@ class FirestoreDocument extends TaskDocument<DataField>
     if (this.isUpdating) return;
     this.init();
     this._setInternal(data);
+    if (this._keysAsCounter != null) this.useCounter(this._keysAsCounter);
     this.notifyUpdate();
     this.done();
     if (!this.isListenable) this._isUpdatable = false;
@@ -486,6 +510,7 @@ class FirestoreDocument extends TaskDocument<DataField>
     if (!this.isTemporary) {
       this._app._addChild(this);
     }
+    if (this._keysAsCounter != null) this.useCounter(this._keysAsCounter);
     return this.future;
   }
 

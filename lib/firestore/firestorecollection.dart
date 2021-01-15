@@ -59,6 +59,7 @@ class FirestoreCollection extends TaskCollection<FirestoreDocument>
   }
 
   FirestoreAuth __auth;
+  List<String> _keysAsCounter;
   List<_FirestoreCollectionListener> _listener = ListPool.get();
 
   /// Get the Firestore collection.
@@ -115,8 +116,10 @@ class FirestoreCollection extends TaskCollection<FirestoreDocument>
   /// [orderByKey]: Key for sorting.
   /// [thenBy]: Sort order when the first sort has the same value.
   /// [thenByKey]: Sort key when the first sort has the same value.
+  /// [keysAsCounter]: A key used as a counter.
   static Future<FirestoreCollection> listen(String path,
       {FirestoreQuery query,
+      List<String> keysAsCounter,
       OrderBy orderBy = OrderBy.none,
       OrderBy thenBy = OrderBy.none,
       String orderByKey,
@@ -142,6 +145,11 @@ class FirestoreCollection extends TaskCollection<FirestoreDocument>
         reload = true;
         collection.query = query;
       }
+      if (keysAsCounter != null &&
+          !keysAsCounter.equals(collection._keysAsCounter)) {
+        reload = true;
+        collection._keysAsCounter = keysAsCounter;
+      }
       if (collection.isChanged(
           orderBy: orderBy,
           thenBy: thenBy,
@@ -152,6 +160,7 @@ class FirestoreCollection extends TaskCollection<FirestoreDocument>
     collection = FirestoreCollection._(
         path: path,
         isListenable: true,
+        keysAsCounter: keysAsCounter,
         query: query,
         orderBy: orderBy,
         thenBy: thenBy,
@@ -183,8 +192,10 @@ class FirestoreCollection extends TaskCollection<FirestoreDocument>
   /// [orderByKey]: Key for sorting.
   /// [thenBy]: Sort order when the first sort has the same value.
   /// [thenByKey]: Sort key when the first sort has the same value.
+  /// [keysAsCounter]: A key used as a counter.
   static Future<FirestoreCollection> load(String path,
       {FirestoreQuery query,
+      List<String> keysAsCounter,
       OrderBy orderBy = OrderBy.none,
       OrderBy thenBy = OrderBy.none,
       String orderByKey,
@@ -210,6 +221,11 @@ class FirestoreCollection extends TaskCollection<FirestoreDocument>
         reload = true;
         collection.query = query;
       }
+      if (keysAsCounter != null &&
+          !keysAsCounter.equals(collection._keysAsCounter)) {
+        reload = true;
+        collection._keysAsCounter = keysAsCounter;
+      }
       if (collection.isChanged(
           orderBy: orderBy,
           thenBy: thenBy,
@@ -220,6 +236,7 @@ class FirestoreCollection extends TaskCollection<FirestoreDocument>
     collection = FirestoreCollection._(
         path: path,
         query: query,
+        keysAsCounter: keysAsCounter,
         orderBy: orderBy,
         thenBy: thenBy,
         orderByKey: orderByKey,
@@ -235,12 +252,14 @@ class FirestoreCollection extends TaskCollection<FirestoreDocument>
       bool isTemporary = false,
       int group = 0,
       int order = 10,
+      List<String> keysAsCounter,
       FirestoreQuery query,
       OrderBy orderBy = OrderBy.none,
       OrderBy thenBy = OrderBy.none,
       String orderByKey,
       String thenByKey})
       : this._isListenable = isListenable,
+        this._keysAsCounter = keysAsCounter,
         super(
             path: path,
             children: children,
@@ -479,8 +498,8 @@ class FirestoreCollection extends TaskCollection<FirestoreDocument>
         if (doc != null) {
           doc._setInternal(value);
         } else {
-          addData.add(
-              FirestoreDocument._create(Paths.child(this.path, key), value));
+          addData.add(FirestoreDocument._create(Paths.child(this.path, key),
+              data: value, keysAsCounter: this._keysAsCounter));
         }
         value.release();
       });
