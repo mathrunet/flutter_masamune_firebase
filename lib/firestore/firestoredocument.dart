@@ -303,10 +303,16 @@ class FirestoreDocument extends TaskDocument<DataField>
       if (!document.isUpdatable) document._isUpdatable = true;
       if (keysAsCounter != null) document._keysAsCounter = keysAsCounter;
       if (data != null) document.set(document._convertData(path, data));
+      if (document._keysAsCounter != null) {
+        document.useCounter(document._keysAsCounter);
+      }
       return document;
     }
     document = FirestoreDocument._(path: path, keysAsCounter: keysAsCounter);
     if (data != null) document.set(document._convertData(path, data));
+    if (document._keysAsCounter != null) {
+      document.useCounter(document._keysAsCounter);
+    }
     document.done();
     return document;
   }
