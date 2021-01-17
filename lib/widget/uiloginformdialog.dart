@@ -61,8 +61,8 @@ class UILoginFormDialog extends StatelessWidget with UIFormMixin {
               Navigator.of(context, rootNavigator: true).pop();
               if (this.defaultSubmitAction == null) return;
               this.formKey.currentState.save();
-              this.defaultSubmitAction(context.form.getString("email"),
-                  context.form.getString("password"));
+              this.defaultSubmitAction(this.form.getString("email"),
+                  this.form.getString("password"));
             },
           )
         ],
@@ -87,7 +87,7 @@ class UILoginFormDialog extends StatelessWidget with UIFormMixin {
                       },
                       onSaved: (value) {
                         if (isEmpty(value)) return;
-                        context.form["email"] = value;
+                        this.form["email"] = value;
                       })),
               Padding(
                   padding:
@@ -113,7 +113,7 @@ class UILoginFormDialog extends StatelessWidget with UIFormMixin {
                       },
                       onSaved: (value) {
                         if (isEmpty(value)) return;
-                        context.form["password"] = value;
+                        this.form["password"] = value;
                       }))
             ])));
   }

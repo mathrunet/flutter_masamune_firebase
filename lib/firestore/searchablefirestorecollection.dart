@@ -131,6 +131,7 @@ class SearchableFirestoreCollection extends TaskCollection<FirestoreDocument>
   /// ```
   ///
   /// [path]: Collection path.
+  /// [limit]: Limit count.
   /// [queryKey]: Key to search.
   /// [searchText]: The text to search for.
   /// [query]: Querying collections.

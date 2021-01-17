@@ -46,7 +46,7 @@ class UILoginForm extends StatelessWidget with UIFormMixin {
                   },
                   onSaved: (value) {
                     if (isEmpty(value)) return;
-                    context.form["email"] = value;
+                    this.form["email"] = value;
                   })),
           Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
@@ -71,7 +71,7 @@ class UILoginForm extends StatelessWidget with UIFormMixin {
                   },
                   onSaved: (value) {
                     if (isEmpty(value)) return;
-                    context.form["password"] = value;
+                    this.form["password"] = value;
                   }))
         ]));
   }

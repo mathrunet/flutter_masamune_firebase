@@ -55,6 +55,10 @@ part 'firestore/model/firestoredocumentmodel.dart';
 part 'firestore/model/firestorecollectionmodel.dart';
 part 'firestore/model/searchablefirestorecollectionmodel.dart';
 
+part 'firestore/provider/firestoredocumentprovider.dart';
+part 'firestore/provider/firestorecollectionprovider.dart';
+part 'firestore/provider/searchablefirestorecollectionprovider.dart';
+
 part 'auth/firestoreauth.dart';
 part 'auth/authprovideroptions.dart';
 part 'auth/emailandpasswordauth.dart';

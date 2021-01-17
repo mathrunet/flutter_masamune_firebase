@@ -1,3 +1,7 @@
+## [0.6.1] - Update README (2021.01.16)
+
+* Redesigned around the Riverpod.
+
 ## [0.6.0] - Update README (2021.01.07)
 
 * Hook and InheritWidget are integrated.
