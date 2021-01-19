@@ -50,9 +50,9 @@ part 'firestore/searchablefirestorecollection.dart';
 part 'firestore/firestorefolderstructureutility.dart';
 part 'firestore/firestoreutility.dart';
 
-// part 'firestore/model/firestoredocumentmodel.dart';
-// part 'firestore/model/firestorecollectionmodel.dart';
-// part 'firestore/model/searchablefirestorecollectionmodel.dart';
+part 'firestore/model/firestoredocumentmodel.dart';
+part 'firestore/model/firestorecollectionmodel.dart';
+part 'firestore/model/searchablefirestorecollectionmodel.dart';
 
 part 'firestore/provider/firestoredocumentprovider.dart';
 part 'firestore/provider/firestorecollectionprovider.dart';
