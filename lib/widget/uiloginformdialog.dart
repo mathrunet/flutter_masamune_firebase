@@ -3,7 +3,7 @@ part of masamune.firebase;
 /// Display the login form.
 ///
 /// Normally, [UILoginForm.show()] is executed to output with [UILoginForm.show()].
-class UILoginFormDialog extends StatelessWidget with UIFormMixin {
+class UILoginFormDialog extends UIWidget with UIFormMixin {
   /// Dialog title.
   final String title;
 

@@ -310,13 +310,6 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
-  flutter_widget_model:
-    dependency: "direct main"
-    description:
-      name: flutter_widget_model
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.6.0+3"
   font_awesome_flutter:
     dependency: transitive
     description:
@@ -394,20 +387,27 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.1.0"
+  masamune:
+    dependency: "direct main"
+    description:
+      name: masamune
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.6.0+1"
   masamune_core:
     dependency: "direct main"
     description:
       name: masamune_core
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.6.0+7"
+    version: "0.6.1+4"
   masamune_flutter:
     dependency: "direct main"
     description:
       name: masamune_flutter
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.6.1+5"
+    version: "0.6.2+1"
   masamune_localize:
     dependency: "direct main"
     description:
@@ -436,6 +436,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.3.0-nullsafety.3"
+  mime:
+    dependency: transitive
+    description:
+      name: mime
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.9.7"
   octo_image:
     dependency: transitive
     description:
@@ -555,6 +562,20 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.24.1"
+  selectable_autolink_text:
+    dependency: transitive
+    description:
+      name: selectable_autolink_text
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.3.6"
+  share:
+    dependency: transitive
+    description:
+      name: share
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.6.5+4"
   shared_preferences:
     dependency: transitive
     description:

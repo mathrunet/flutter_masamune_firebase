@@ -12,7 +12,6 @@ import 'dart:async';
 import 'dart:math';
 import 'dart:io';
 import 'package:flutter/services.dart';
-import 'package:flutter_widget_model/flutter_widget_model.dart';
 import 'package:http/http.dart';
 import 'package:package_info/package_info.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -51,9 +50,9 @@ part 'firestore/searchablefirestorecollection.dart';
 part 'firestore/firestorefolderstructureutility.dart';
 part 'firestore/firestoreutility.dart';
 
-part 'firestore/model/firestoredocumentmodel.dart';
-part 'firestore/model/firestorecollectionmodel.dart';
-part 'firestore/model/searchablefirestorecollectionmodel.dart';
+// part 'firestore/model/firestoredocumentmodel.dart';
+// part 'firestore/model/firestorecollectionmodel.dart';
+// part 'firestore/model/searchablefirestorecollectionmodel.dart';
 
 part 'firestore/provider/firestoredocumentprovider.dart';
 part 'firestore/provider/firestorecollectionprovider.dart';
@@ -69,7 +68,6 @@ part 'storage/firestorestorage.dart';
 part 'dynamiclink/firestoredynamiclinkuri.dart';
 
 part 'widget/uiloginformdialog.dart';
-part 'widget/uiloginform.dart';
 part 'widget/uiauth.dart';
 part 'widget/uiauthdialog.dart';
 part 'widget/uiappconfig.dart';
