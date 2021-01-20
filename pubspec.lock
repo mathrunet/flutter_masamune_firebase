@@ -400,7 +400,7 @@ packages:
       name: masamune_core
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.6.1+6"
+    version: "0.6.1+8"
   masamune_flutter:
     dependency: "direct main"
     description:

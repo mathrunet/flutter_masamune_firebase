@@ -10,29 +10,23 @@ class FirestoreCollectionModel extends CollectionModel {
   /// Firestore query.
   final FirestoreQuery query;
 
-  /// Order by type.
-  final OrderBy orderBy;
-
-  /// Order by type.
-  final OrderBy thenBy;
-
-  /// Key of orderBy.
-  final String orderByKey;
-
-  /// Key of thenBy.
-  final String thenByKey;
-
   /// Firestore's collection model.
   ///
   /// You can get the data as a collection by specifying the Firestore path.
   FirestoreCollectionModel(String path,
       {this.query,
       this.keysAsCounter,
-      this.orderBy = OrderBy.none,
-      this.thenBy = OrderBy.none,
-      this.orderByKey,
-      this.thenByKey})
-      : super(path);
+      OrderBy orderBy = OrderBy.none,
+      OrderBy thenBy = OrderBy.none,
+      String orderByKey,
+      String thenByKey})
+      : super(
+          path,
+          orderBy: orderBy,
+          thenBy: thenBy,
+          orderByKey: orderByKey,
+          thenByKey: thenByKey,
+        );
 
   /// Build the model.
   ///
