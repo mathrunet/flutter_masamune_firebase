@@ -19,7 +19,7 @@ class UIAppConfig {
       String androidStoreURL,
       String officialURL}) {
     OverlayState overlay = context.navigator.overlay;
-    return AppConfigDocument.listen().listen((value) async {
+    return AppConfigDocument.listen().watch((value) async {
       if (value.getBool(maintenanceKey, false)) {
         UIDialog.show(overlay.context,
             title: "Under maintenance".localize(),

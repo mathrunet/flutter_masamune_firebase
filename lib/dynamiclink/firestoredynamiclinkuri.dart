@@ -67,37 +67,35 @@ class FirestoreDynamicLinkURI extends Task<Uri> implements ITask {
   /// Create a URL to access [path].
   ///
   /// [path]: Path to create.
-  /// [uriPrefix]: URL prefix.
-  /// [iosBundleId]: IOS Bundle ID.
-  /// [webAPIkey]: API key for the web.
-  /// [packageName]: Package name.
-  /// [minimumVersion]: Minimum version.
+  /// [options]: Firestore dynamiclink options.
   /// [socialTitle]: Social media title.
   /// [socialImageURL]: Social image url.
   /// [socialDescription]: Social media description.
   static Future<FirestoreDynamicLinkURI> create(String path,
-      {String uriPrefix,
-      String iosBundleId,
-      String webAPIKey,
-      String packageName,
-      int minimumVersion = 1,
+      {FirestoreDynamicLinkOptions options,
       String socialDescription,
       String socialImageURL,
       String socialTitle}) {
     path = path?.applyTags();
     assert(isNotEmpty(path));
-    assert(isNotEmpty(uriPrefix));
-    assert(isNotEmpty(iosBundleId));
-    assert(!(Config.isWeb && isEmpty(webAPIKey)));
-    if (isEmpty(path) || isEmpty(uriPrefix)) {
+    assert(options != null);
+    assert(isNotEmpty(options.uriPrefix));
+    assert(isNotEmpty(options.appStoreId));
+    assert(isNotEmpty(options.packageName));
+    assert(!(Config.isWeb && isEmpty(options.webAPIKey)));
+    if (options == null) {
+      Log.error("Options is empty");
+      return Future.delayed(Duration.zero);
+    }
+    if (isEmpty(path) || isEmpty(options.uriPrefix)) {
       Log.error("Path is invalid.");
       return Future.delayed(Duration.zero);
     }
-    if (isEmpty(iosBundleId)) {
-      Log.error("Bundle Id is empty.");
+    if (isEmpty(options.appStoreId) || isEmpty(options.packageName)) {
+      Log.error("Bundle Id / Package name is empty.");
       return Future.delayed(Duration.zero);
     }
-    if (Config.isWeb && isEmpty(webAPIKey)) {
+    if (Config.isWeb && isEmpty(options.webAPIKey)) {
       Log.error("Web API Key is empty.");
       return Future.delayed(Duration.zero);
     }
@@ -105,14 +103,15 @@ class FirestoreDynamicLinkURI extends Task<Uri> implements ITask {
     if (unit != null) return unit.future;
     unit = FirestoreDynamicLinkURI._(path: path);
     unit._constructURI(
-        uriPrefix: uriPrefix,
-        iosBundleId: iosBundleId,
-        webAPIKey: webAPIKey,
-        packageName: packageName,
-        minimumVersion: minimumVersion,
-        socialDescription: socialDescription,
-        socialImageURL: socialImageURL,
-        socialTitle: socialTitle);
+      uriPrefix: options.uriPrefix,
+      appStoreId: options.appStoreId,
+      webAPIKey: options.webAPIKey,
+      packageName: options.packageName,
+      minimumVersion: options.minimumVersion,
+      socialDescription: socialDescription ?? options.defaultSocialDescription,
+      socialImageURL: socialImageURL ?? options.defaultSocialImageURL,
+      socialTitle: socialTitle ?? options.defaultSocialTitle,
+    );
     return unit.future;
   }
 
@@ -130,7 +129,7 @@ class FirestoreDynamicLinkURI extends Task<Uri> implements ITask {
             order: order);
   void _constructURI(
       {String uriPrefix,
-      String iosBundleId,
+      String appStoreId,
       String webAPIKey,
       String packageName,
       int minimumVersion = 1,
@@ -152,11 +151,11 @@ class FirestoreDynamicLinkURI extends Task<Uri> implements ITask {
                 },
                 "iosInfo": {
                   "iosBundleId": packageName,
-                  "iosAppStoreId": iosBundleId
+                  "iosAppStoreId": appStoreId
                 },
                 "socialMetaTagInfo": {
-                  "socialTitle": socialTitle,
-                  "socialDescription": socialDescription,
+                  "socialTitle": socialTitle?.localize(),
+                  "socialDescription": socialDescription?.localize(),
                   "socialImageLink": socialImageURL
                 }
               }
@@ -177,11 +176,11 @@ class FirestoreDynamicLinkURI extends Task<Uri> implements ITask {
             iosParameters: IosParameters(
               bundleId: packageName ?? info.packageName,
               minimumVersion: version.toString(),
-              appStoreId: iosBundleId,
+              appStoreId: appStoreId,
             ),
             socialMetaTagParameters: SocialMetaTagParameters(
-                title: socialTitle,
-                description: socialDescription,
+                title: socialTitle?.localize(),
+                description: socialDescription?.localize(),
                 imageUrl:
                     socialImageURL != null ? Uri.parse(socialImageURL) : null));
         this.data = (await data.buildShortLink())?.shortUrl;

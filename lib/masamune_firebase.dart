@@ -66,6 +66,7 @@ part 'auth/anonymouslyauth.dart';
 part 'storage/firestorestorage.dart';
 
 part 'dynamiclink/firestoredynamiclinkuri.dart';
+part 'dynamiclink/firestoredynamiclinkoptions.dart';
 
 part 'widget/uiloginformdialog.dart';
 part 'widget/uiauth.dart';
