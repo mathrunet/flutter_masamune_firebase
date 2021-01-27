@@ -272,6 +272,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.15.0"
+  flutter_markdown:
+    dependency: transitive
+    description:
+      name: flutter_markdown
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.5.2"
   flutter_reorderable_list:
     dependency: transitive
     description:
@@ -387,13 +394,20 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.1.0"
+  markdown:
+    dependency: transitive
+    description:
+      name: markdown
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "3.0.0"
   masamune:
     dependency: "direct main"
     description:
       name: masamune
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.6.2+2"
+    version: "0.6.2+3"
   masamune_core:
     dependency: "direct main"
     description:
@@ -407,7 +421,7 @@ packages:
       name: masamune_flutter
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.6.2+4"
+    version: "0.6.2+6"
   masamune_localize:
     dependency: "direct main"
     description:
