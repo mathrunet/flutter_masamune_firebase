@@ -754,7 +754,7 @@ class FirestoreAuth extends Auth {
   /// [protorol]: Protocol specification.
   /// [locale]: Specify the language of the confirmation email.
   /// [timeout]: Timeout time.
-  static Future<FirestoreAuth> signInSMS(String phoneNumber,
+  static Future<FirestoreAuth> sendSMS(String phoneNumber,
       {String protocol,
       String locale,
       Duration timeout = const Duration(seconds: 60)}) {
@@ -771,31 +771,29 @@ class FirestoreAuth extends Auth {
     } else {
       unit.init();
     }
-    unit._signInSMS(phoneNumber: phoneNumber, locale: locale, timeout: timeout);
+    unit._sendSMS(phoneNumber: phoneNumber, locale: locale, timeout: timeout);
     return unit.future;
   }
 
-  Future _signInSMS(
-      {String phoneNumber, String locale, Duration timeout}) async {
+  Future _sendSMS({String phoneNumber, String locale, Duration timeout}) async {
     try {
       await this._prepareProcessInternal(timeout);
-      if (this._link != null &&
-          this._link.providerData.any(
-              (t) => t.providerId?.contains(PhoneAuthProvider.PROVIDER_ID))) {
-        this.error("This user is already linked to a Phone number account.");
-        return;
-      }
       await this._auth.setLanguageCode(locale ?? Localize.locale);
       await this._auth.verifyPhoneNumber(
           phoneNumber: phoneNumber,
           timeout: timeout,
           verificationCompleted: (credential) async {
+            Log.ast(
+                "Received verification code. ${credential.smsCode} ${credential.verificationId}");
             if (this._link != null) {
-              this._link = (await this
-                      ._link
-                      .linkWithCredential(credential)
-                      .timeout(timeout))
-                  .user;
+              if (!this._link.providerData.any((t) =>
+                  t.providerId?.contains(PhoneAuthProvider.PROVIDER_ID))) {
+                this._link = (await this
+                        ._link
+                        .linkWithCredential(credential)
+                        .timeout(timeout))
+                    .user;
+              }
             } else {
               this._link = (await this
                       ._auth
@@ -815,11 +813,15 @@ class FirestoreAuth extends Auth {
           verificationFailed: (error) {
             this.error(error.message);
           },
-          codeSent: (number, [code]) {
-            Log.ast("Submitted the code for Phone number.$number $code");
+          codeSent: (verificationCode, [code]) {
+            Log.ast(
+                "Submitted the code for Phone number. $verificationCode $code");
+            this._smsVerificationCode = verificationCode;
+            this.done();
           },
-          codeAutoRetrievalTimeout: (error) {
-            this.timeout(error);
+          codeAutoRetrievalTimeout: (verificationCode) {
+            this._smsVerificationCode = verificationCode;
+            this.done();
           });
     } on TimeoutException catch (e) {
       this.timeout(e.toString());
@@ -828,6 +830,137 @@ class FirestoreAuth extends Auth {
       return;
     }
   }
+
+  /// Authenticate by sending a code to your phone number.
+  ///
+  /// [smsCode]: Authentication code received from SMS.
+  /// [protorol]: Protocol specification.
+  /// [locale]: Specify the language of the confirmation email.
+  /// [timeout]: Timeout time.
+  static Future<FirestoreAuth> signInSMS(String smsCode,
+      {String protocol,
+      String locale,
+      Duration timeout = const Duration(seconds: 60)}) {
+    assert(isNotEmpty(smsCode));
+    if (isEmpty(smsCode)) {
+      Log.error("This SMS code is invalid.");
+      return Future.delayed(Duration.zero);
+    }
+    if (isEmpty(protocol)) protocol = "firestore";
+    String path = Texts.format(_systemPath, [protocol]);
+    FirestoreAuth unit = PathMap.get<FirestoreAuth>(path);
+    if (unit == null || isEmpty(unit._smsVerificationCode)) {
+      Log.error(
+          "An authorization code has not been issued. Use [FirestoreAuth.sendSMS()] to issue the authentication code.");
+      return Future.delayed(Duration.zero);
+    }
+    unit.init();
+    unit._signInSMS(smsCode: smsCode, locale: locale, timeout: timeout);
+    return unit.future;
+  }
+
+  Future _signInSMS({String smsCode, String locale, Duration timeout}) async {
+    try {
+      await this._prepareProcessInternal(timeout);
+      await this._auth.setLanguageCode(locale ?? Localize.locale);
+      AuthCredential credential = PhoneAuthProvider.credential(
+          verificationId: this._smsVerificationCode, smsCode: smsCode);
+      this._smsVerificationCode = null;
+      if (credential == null) {
+        this.error("The credential data is empty.");
+        return;
+      }
+      if (this._link != null) {
+        if (!this._link.providerData.any(
+            (t) => t.providerId?.contains(PhoneAuthProvider.PROVIDER_ID))) {
+          this._link =
+              (await this._link.linkWithCredential(credential).timeout(timeout))
+                  .user;
+        }
+      } else {
+        this._link =
+            (await this._auth.signInWithCredential(credential).timeout(timeout))
+                .user;
+      }
+      if (this._link == null || isEmpty(this._link.uid)) {
+        this.error("User is not found.");
+        return;
+      }
+      Log.ast("Linked Phone number to user: %s", [this._link.uid]);
+      if (_onAuthorized != null)
+        await _onAuthorized(this, this._link, this._link.uid);
+      this.authorized(this._link.uid);
+    } on TimeoutException catch (e) {
+      this.timeout(e.toString());
+    } catch (e) {
+      this.error(e.toString());
+      return;
+    }
+  }
+
+  /// Update your phone number.
+  /// You need to send an SMS with [sendSMS] in advance.
+  ///
+  /// [smsCode]: Authentication code received from SMS.
+  /// [protorol]: Protocol specification.
+  /// [locale]: Specify the language of the confirmation email.
+  /// [timeout]: Timeout time.
+  static Future<FirestoreAuth> updatePhone(String smsCode,
+      {String protocol,
+      String locale,
+      Duration timeout = const Duration(seconds: 60)}) {
+    assert(isNotEmpty(smsCode));
+    if (isEmpty(smsCode)) {
+      Log.error("This SMS code is invalid.");
+      return Future.delayed(Duration.zero);
+    }
+    if (isEmpty(protocol)) protocol = "firestore";
+    String path = Texts.format(_systemPath, [protocol]);
+    FirestoreAuth unit = PathMap.get<FirestoreAuth>(path);
+    if (unit == null || isEmpty(unit._smsVerificationCode)) {
+      Log.error(
+          "An authorization code has not been issued. Use [FirestoreAuth.sendSMS()] to issue the authentication code.");
+      return Future.delayed(Duration.zero);
+    }
+    if (unit._link == null || isEmpty(unit._link.uid)) {
+      Log.error(
+          "You are not logged in. You need to log in beforehand using [signInSMS].");
+      return Future.delayed(Duration.zero);
+    }
+    unit.init();
+    unit._updatePhone(smsCode: smsCode, locale: locale, timeout: timeout);
+    return unit.future;
+  }
+
+  Future _updatePhone({String smsCode, String locale, Duration timeout}) async {
+    try {
+      await this._prepareProcessInternal(timeout);
+      await this._auth.setLanguageCode(locale ?? Localize.locale);
+      AuthCredential credential = PhoneAuthProvider.credential(
+          verificationId: this._smsVerificationCode, smsCode: smsCode);
+      this._smsVerificationCode = null;
+      if (credential == null) {
+        this.error("The credential data is empty.");
+        return;
+      }
+      if (this._link == null || isEmpty(this._link.uid)) {
+        this.error("User is not found.");
+        return;
+      }
+      await this._link.updatePhoneNumber(credential);
+      this._link = this._auth.currentUser;
+      await this._link.reload();
+      Log.ast("Update Phone number for user: %s", [this._link.uid]);
+      this.done();
+    } on TimeoutException catch (e) {
+      this.timeout(e.toString());
+    } catch (e) {
+      this.error(e.toString());
+      return;
+    }
+  }
+
+  String _smsVerificationCode;
 
   /// Register using your email and password.
   ///
