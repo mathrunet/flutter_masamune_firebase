@@ -210,7 +210,7 @@ packages:
       name: firebase_model_notifier
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.8.0-nullsafety.38"
+    version: "0.8.0-nullsafety.39"
   firebase_storage:
     dependency: transitive
     description:
@@ -271,7 +271,7 @@ packages:
       name: flutter_riverpod
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.13.0"
+    version: "0.13.1"
   flutter_test:
     dependency: "direct dev"
     description: flutter
@@ -302,7 +302,7 @@ packages:
       name: hooks_riverpod
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.13.0"
+    version: "0.13.1"
   http:
     dependency: transitive
     description:
@@ -351,21 +351,21 @@ packages:
       name: katana
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.8.0-nullsafety.29"
+    version: "0.8.0-nullsafety.30"
   katana_firebase:
     dependency: transitive
     description:
       name: katana_firebase
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.8.0-nullsafety.18"
+    version: "0.8.0-nullsafety.19"
   katana_routing:
     dependency: transitive
     description:
       name: katana_routing
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.8.0-nullsafety.20"
+    version: "0.8.0-nullsafety.23"
   markdown:
     dependency: transitive
     description:
@@ -379,7 +379,7 @@ packages:
       name: masamune
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.8.0-nullsafety.33"
+    version: "0.8.0-nullsafety.35"
   masamune_test:
     dependency: "direct dev"
     description:
@@ -414,7 +414,7 @@ packages:
       name: model_notifier
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.8.0-nullsafety.29"
+    version: "0.8.0-nullsafety.31"
   octo_image:
     dependency: transitive
     description:
@@ -505,7 +505,7 @@ packages:
       name: riverpod
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.13.0"
+    version: "0.13.1"
   rxdart:
     dependency: transitive
     description:
